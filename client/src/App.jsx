@@ -1,4 +1,8 @@
 import React from 'react';
+import MatchCalendar from './components/MatchCalendar';
+import PlayerFaceOff from './components/PlayerFaceOff';
+import ContactSection from './components/ContactSection';
+
 
 function App() {
   return (
@@ -109,6 +113,11 @@ function App() {
 
         </div>
       </main>
+
+      {/* NUEVAS SECCIONES */}
+      <MatchCalendar />
+      <PlayerFaceOff />
+      <ContactSection />
     </div>
   );
 }
