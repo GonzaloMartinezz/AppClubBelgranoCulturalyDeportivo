@@ -10,7 +10,7 @@ const Shop = () => {
 
   return (
     <section id="shop" className="bg-dark py-0 relative overflow-hidden border-b-2 border-white/10">
-      
+
       {/* Marquee Header */}
       <div className="bg-brand text-white py-4 border-y-2 border-white flex overflow-hidden whitespace-nowrap">
         <div className="animate-[marquee_20s_linear_infinite] flex items-center font-oswald font-bold text-xl uppercase tracking-[0.2em]">
@@ -37,15 +37,15 @@ const Shop = () => {
           {products.map((product) => (
             <div key={product.id} className="group cursor-pointer">
               {/* Product Image Container */}
-              <div className="bg-surface border-2 border-white/10 aspect-[3/4] relative overflow-hidden mb-6 group-hover:border-white transition-colors duration-300">
+              <div className="bg-surface border-2 border-white/10 aspect-3/4 relative overflow-hidden mb-6 group-hover:border-white transition-colors duration-300">
                 {product.tag && (
                   <div className="absolute top-4 left-4 bg-white text-dark font-oswald font-bold text-[10px] uppercase tracking-widest px-3 py-1 z-10">
                     {product.tag}
                   </div>
                 )}
-                
+
                 {/* Image Placeholder */}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-dark/50 z-0"></div>
+                <div className="absolute inset-0 bg-linear-to-b from-transparent to-dark/50 z-0"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <span className="font-teko text-6xl text-white/10 font-bold group-hover:scale-110 transition-transform duration-500">
                     B.
@@ -75,13 +75,14 @@ const Shop = () => {
             </div>
           ))}
         </div>
-        
+
         <button className="md:hidden w-full mt-12 border-2 border-brand text-brand font-oswald font-bold uppercase text-sm tracking-widest py-4 hover:bg-brand hover:text-white transition-colors">
           Ver Catálogo Completo
         </button>
       </div>
-      
-      <style dangerouslySetInnerHTML={{__html: `
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .border-text {
           -webkit-text-stroke: 2px white;
           color: transparent;
