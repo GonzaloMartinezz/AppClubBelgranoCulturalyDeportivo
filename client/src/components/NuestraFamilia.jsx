@@ -1,59 +1,69 @@
-import React from 'react';
-
 const NuestraFamilia = () => {
+  const stats = [
+    { value: '106', label: 'Años de Historia', suffix: '+' },
+    { value: '5', label: 'Socios Activos', suffix: 'K+' },
+    { value: '3', label: 'Títulos Liga', suffix: '' },
+  ];
+
   return (
-    <section id="nuestra-familia" className="bg-dark text-white border-y-2 border-white/10 py-32 px-6 md:px-12 lg:px-24 relative overflow-hidden">
-      {/* Decorative brutalist background text */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-5 pointer-events-none flex items-center justify-center">
-        <span className="text-[20vw] font-teko font-bold leading-none uppercase whitespace-nowrap">
+    <section id="nuestra-familia" className="bg-dark relative overflow-hidden">
+      {/* Background Large Text */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
+        <span className="font-teko text-[25vw] font-bold text-white/[0.02] leading-none uppercase whitespace-nowrap">
           FAMILIA BELGRANO
         </span>
       </div>
 
-      <div className="max-w-7xl mx-auto relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-0 border-2 border-white/10">
-          
-          {/* Header Column */}
-          <div className="lg:col-span-5 p-8 md:p-16 border-b-2 lg:border-b-0 lg:border-r-2 border-white/10 flex flex-col justify-between bg-dark">
-            <div>
-              <div className="inline-block border border-brand text-brand px-3 py-1 font-oswald text-xs uppercase tracking-widest mb-8 font-bold">
-                Identidad / 1920
-              </div>
-              <h2 className="text-6xl md:text-8xl font-teko font-bold uppercase leading-[0.85] tracking-normal mb-8">
-                Más que <br />
-                <span className="text-brand">un Club</span>
-              </h2>
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-32 relative z-10">
+        {/* Section Header */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 mb-20 pb-8 border-b border-white/10">
+          <div>
+            <div className="inline-flex items-center gap-3 border border-brand/30 bg-brand/5 px-4 py-2 font-oswald text-[10px] uppercase tracking-[0.25em] text-brand font-bold mb-6">
+              IDENTIDAD / 1920
             </div>
-            <p className="font-sans text-gray-400 leading-relaxed text-sm max-w-md">
-              Desde nuestros inicios en Barrio Sur, hemos forjado un legado de pasión, garra y comunidad. No somos solo un equipo de básquet; somos la familia que alienta incondicionalmente en cada cuarto.
-            </p>
+            <h2 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-teko font-bold uppercase leading-[0.85] tracking-tight">
+              <span className="text-white">Más que</span><br />
+              <span className="text-brand">un Club</span>
+            </h2>
           </div>
+          <p className="text-gray-400 text-sm font-sans leading-relaxed max-w-md lg:text-right lg:mb-4">
+            Desde Barrio Sur, hemos forjado un legado de pasión, garra y comunidad.
+            Somos la familia que alienta incondicionalmente en cada cuarto.
+          </p>
+        </div>
 
-          {/* Image & Stats Column */}
-          <div className="lg:col-span-7 flex flex-col">
-            <div className="h-96 bg-surface relative overflow-hidden group border-b-2 border-white/10">
-              <div className="absolute inset-0 bg-brand/20 mix-blend-multiply group-hover:bg-transparent transition-all duration-700"></div>
-              {/* Brutalist Image Placeholder */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="font-oswald text-4xl text-white/20 uppercase tracking-widest font-bold">IMAGEN HISTÓRICA</span>
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 border border-white/10">
+          
+          {/* Image Area */}
+          <div className="lg:col-span-8 h-[400px] md:h-[500px] bg-surface relative overflow-hidden group">
+            <div className="absolute inset-0 bg-linear-to-br from-brand/20 to-transparent group-hover:opacity-70 transition-opacity duration-700"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <span className="font-teko text-9xl font-bold text-white/5 block">BEL</span>
+                <span className="font-oswald text-sm text-white/20 uppercase tracking-[0.3em]">Imagen Histórica</span>
               </div>
             </div>
-            
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 h-full">
-              <div className="p-8 border-r-2 lg:border-b-0 border-b-2 border-white/10 flex flex-col justify-center items-center text-center hover:bg-white hover:text-dark transition-colors group cursor-default">
-                <span className="text-6xl font-teko font-bold mb-2 group-hover:text-brand transition-colors">100+</span>
-                <span className="text-[10px] font-oswald uppercase tracking-[0.2em] text-gray-500 group-hover:text-dark">Años de Historia</span>
+            {/* Corner Accents */}
+            <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-brand/50"></div>
+            <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-brand/50"></div>
+          </div>
+          
+          {/* Stats Column */}
+          <div className="lg:col-span-4 flex flex-col">
+            {stats.map((stat, idx) => (
+              <div
+                key={idx}
+                className={`flex-1 p-8 md:p-10 flex flex-col justify-center items-center text-center group cursor-default border-b lg:border-b-0 border-white/10 last:border-b-0 hover:bg-brand transition-colors duration-300 ${idx < stats.length - 1 ? 'lg:border-b' : ''}`}
+              >
+                <span className="text-5xl md:text-6xl font-teko font-bold mb-2 text-white group-hover:text-white transition-colors">
+                  {stat.value}{stat.suffix}
+                </span>
+                <span className="text-[10px] font-oswald uppercase tracking-[0.25em] text-gray-500 group-hover:text-white/70 transition-colors">
+                  {stat.label}
+                </span>
               </div>
-              <div className="p-8 border-b-2 lg:border-b-0 border-r-0 lg:border-r-2 border-white/10 flex flex-col justify-center items-center text-center hover:bg-brand transition-colors group cursor-default">
-                <span className="text-6xl font-teko font-bold mb-2 text-white">5K+</span>
-                <span className="text-[10px] font-oswald uppercase tracking-[0.2em] text-gray-500 group-hover:text-white/70">Socios Activos</span>
-              </div>
-              <div className="p-8 lg:col-span-1 col-span-2 flex flex-col justify-center items-center text-center bg-brand text-white group cursor-default hover:bg-blue-700 transition-colors">
-                <span className="text-6xl font-teko font-bold mb-2">3</span>
-                <span className="text-[10px] font-oswald uppercase tracking-[0.2em] text-white/70">Títulos Liga</span>
-              </div>
-            </div>
+            ))}
           </div>
 
         </div>
