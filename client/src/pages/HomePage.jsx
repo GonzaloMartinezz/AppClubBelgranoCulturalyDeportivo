@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import api from '../core/api/client';
 
 const ArrowDown = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M12 5v14M5 12l7 7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const ArrowRight = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
@@ -25,223 +30,169 @@ const HomePage = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const galleryItems = [
-    { src: '/gallery-stadium.png', label: 'Photo Gallery' },
-    { src: '/fans-crowd.png',      label: 'La Hinchada' },
-  ];
-
   return (
-    <div className="pt-16" style={{ background: 'var(--color-dark)' }}>
+    <div className="w-full" style={{ background: '#111111' }}>
 
       {/* ════════════════════════════════════
-          HERO — full width image
+          HERO — 100vh con la palabra CLUB gigante
       ════════════════════════════════════ */}
-      <section className="relative overflow-hidden" style={{ height: '70vh', minHeight: '480px' }}>
+      <section id="hero" className="relative w-full" style={{ height: '100vh', overflow: 'hidden' }}>
         <img
           src="/hero-bg.png"
           alt="Belgrano Basketball"
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: 0.5 }}
         />
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(180deg, rgba(18,18,18,0.3) 0%, rgba(18,18,18,0.8) 70%, var(--color-dark) 100%)' }}
-        />
-
-        <div className="app-container relative z-10 flex flex-col justify-end h-full pb-12">
-          <p className="section-label mb-4">Liga Federal · Temporada 2026</p>
-          <h1
-            className="font-teko font-bold uppercase leading-[0.88] tracking-tight text-white mb-6"
-            style={{ fontSize: 'clamp(3rem, 10vw, 6rem)' }}
-          >
-            El Gigante<br />Tucumano
-          </h1>
-          <p className="font-oswald text-sm uppercase tracking-[0.12em] mb-8 max-w-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            Identidad. Garra. Historia. Acompañá al equipo en su camino a lo más alto.
+        <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.4)' }} />
+        
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+          <p className="font-oswald text-xs uppercase tracking-[0.2em] text-white mb-2" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+            LIGA FEDERAL · TEMPORADA 2026
           </p>
-          <div className="flex gap-3">
-            <Link to="/equipo" className="btn-primary">Nuestra Familia</Link>
-            <Link to="/galeria" className="btn-secondary">Galería</Link>
-          </div>
+          <h1
+            className="font-teko font-bold uppercase text-white"
+            style={{ 
+              fontSize: 'min(28vw, 250px)', 
+              lineHeight: 0.8, 
+              letterSpacing: '-0.02em',
+              textShadow: '0 20px 50px rgba(0,0,0,0.5)'
+            }}
+          >
+            CLUB
+          </h1>
         </div>
       </section>
 
       {/* ════════════════════════════════════
-          TWO-COLUMN: Gallery + Contact preview
+          INTRO TEXT
       ════════════════════════════════════ */}
-      <section className="py-10">
-        <div className="app-container">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <section className="py-24 px-6 md:px-20 text-center" style={{ background: '#111111' }}>
+        <div className="max-w-3xl mx-auto">
+          <p className="font-oswald font-bold text-xs uppercase tracking-[0.2em] mb-6" style={{ color: 'var(--color-accent)' }}>
+            Club Belgrano Cultural y Deportivo
+          </p>
+          <p className="font-sans text-xl md:text-2xl leading-relaxed text-white" style={{ opacity: 0.8 }}>
+            Desde 1920 somos una verdadera familia. Llevamos a cada cancha en Tucumán el compromiso, el sudor, la disciplina y la pasión por el juego.
+          </p>
+        </div>
+      </section>
 
-            {/* Gallery card */}
-            <Link to="/galeria" className="relative overflow-hidden group" style={{ borderRadius: '16px', height: '260px' }}>
-              <img
-                src="/gallery-stadium.png"
-                alt="Photo Gallery"
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div
-                className="absolute inset-0"
-                style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%)' }}
-              />
-              <div className="absolute bottom-5 left-5 z-10">
-                <h3 className="font-teko font-bold text-3xl text-white uppercase">Photo Gallery</h3>
-              </div>
-              <div
-                className="absolute bottom-5 right-5 w-10 h-10 flex items-center justify-center"
-                style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }}
-              >
-                <ArrowDown />
-              </div>
-            </Link>
+      {/* ════════════════════════════════════
+          STAGGERED ORANGE BLOCKS
+      ════════════════════════════════════ */}
+      <section id="equipo" className="py-10" style={{ background: '#111111' }}>
+        <div className="flex flex-col gap-10">
+          
+          {/* Bloque Izquierdo */}
+          <div className="w-[80%] md:w-[60%] lg:w-[45%]" style={{ background: 'var(--color-accent)' }}>
+            <div className="p-12 md:p-20 flex flex-col items-start">
+              <h2 className="font-teko font-bold text-6xl text-white uppercase mb-4">Nuestra<br/>Familia</h2>
+              <a href="#hero" className="inline-flex items-center gap-4 text-black font-oswald uppercase text-xs tracking-widest font-bold mt-4" style={{ transition: 'opacity 0.2s' }}>
+                Conocer Equipo <ArrowRight />
+              </a>
+            </div>
+          </div>
 
-            {/* Contact mini form preview */}
-            <div className="card p-6 flex flex-col justify-between" style={{ borderRadius: '16px' }}>
-              <div>
-                <h3 className="font-teko font-bold text-2xl text-white uppercase mb-4">Contacto</h3>
-                <div className="space-y-3">
-                  <input type="text" placeholder="Nombre" className="input-base" readOnly />
-                  <input type="email" placeholder="Email" className="input-base" readOnly />
+          {/* Bloque Derecho */}
+          <div className="w-[80%] md:w-[60%] lg:w-[45%] self-end" style={{ background: 'var(--color-accent)' }}>
+            <div className="p-12 md:p-20 flex flex-col items-start">
+              <h2 className="font-teko font-bold text-6xl text-white uppercase mb-4">Photo<br/>Gallery</h2>
+              <a href="#hero" className="inline-flex items-center gap-4 text-black font-oswald uppercase text-xs tracking-widest font-bold mt-4" style={{ transition: 'opacity 0.2s' }}>
+                Ver Galería <ArrowRight />
+              </a>
+            </div>
+          </div>
+
+          {/* Bloque Izquierdo */}
+          <div className="w-[80%] md:w-[60%] lg:w-[45%]" style={{ background: 'var(--color-accent)' }}>
+            <div className="p-12 md:p-20 flex flex-col items-start">
+              <h2 className="font-teko font-bold text-6xl text-white uppercase mb-4">Tienda<br/>Oficial</h2>
+              <a href="#hero" className="inline-flex items-center gap-4 text-black font-oswald uppercase text-xs tracking-widest font-bold mt-4" style={{ transition: 'opacity 0.2s' }}>
+                Comprar <ArrowRight />
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════
+          IMAGE BREAK (Players)
+      ════════════════════════════════════ */}
+      <section className="w-full py-10" style={{ background: '#111111' }}>
+        <div className="w-[90%] md:w-[80%] mx-auto overflow-hidden" style={{ borderRadius: '16px', height: '60vh' }}>
+          <img 
+            src="/fans-crowd.png" 
+            alt="Jugadores celebrando" 
+            className="w-full h-full object-cover"
+            onError={(e) => { e.currentTarget.src = '/hero-bg.png'; }}
+          />
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════
+          SCOREBOARD + FIXTURE
+      ════════════════════════════════════ */}
+      <section id="fixture" className="py-20 px-4 md:px-10" style={{ background: '#111111' }}>
+        <div className="max-w-5xl mx-auto flex flex-col lg:flex-row gap-6">
+          
+          {/* Marcador Blanco (Left) */}
+          <div 
+            className="flex-1 flex flex-col items-center justify-center p-12 text-center relative overflow-hidden"
+            style={{ background: '#F0F0F0', borderRadius: '16px' }}
+          >
+            <p className="font-oswald font-bold text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-6">
+              {loading ? '...' : latestMatch?.date ? new Date(latestMatch.date + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase() : '27 ABRIL 2026'}
+            </p>
+
+            <div className="flex items-center justify-center gap-6 md:gap-12 w-full">
+              <span className="font-teko font-bold text-black" style={{ fontSize: 'clamp(5rem, 10vw, 8rem)', lineHeight: 0.8 }}>
+                {loading ? '--' : latestMatch?.awayScore ?? '--'}
+              </span>
+              
+              <div className="flex flex-col items-center">
+                <div className="font-teko font-bold text-xl md:text-2xl uppercase tracking-widest text-black border-l-4 border-r-4 px-4" style={{ borderColor: 'var(--color-accent)' }}>
+                  FINAL
                 </div>
+                <p className="font-oswald text-[10px] md:text-xs uppercase tracking-[0.1em] text-gray-500 mt-3">
+                  {loading ? '...' : `${latestMatch?.awayTeam?.name} vs ${latestMatch?.homeTeam?.name}`}
+                </p>
               </div>
-              <Link to="/contacto" className="btn-primary w-full mt-4">
-                Enviar Mensaje
-              </Link>
+
+              <span className="font-teko font-bold text-black" style={{ fontSize: 'clamp(5rem, 10vw, 8rem)', lineHeight: 0.8 }}>
+                {loading ? '--' : latestMatch?.homeScore ?? '--'}
+              </span>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* ════════════════════════════════════
-          NEXT GAME + LAST SCORE
-      ════════════════════════════════════ */}
-      <section className="py-10">
-        <div className="app-container">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-            {/* Next game */}
-            <div
-              className="relative overflow-hidden p-6 flex flex-col justify-between"
-              style={{
-                background: 'var(--color-accent)',
-                borderRadius: '16px',
-                minHeight: '200px',
-              }}
-            >
-              <div>
-                <p className="font-oswald font-bold text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                  Next Game
-                </p>
-                <p className="font-oswald text-xs uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.8)' }}>
-                  04 Mayo 2026 — Ore 21:00
-                </p>
-                <p className="font-oswald text-[10px] uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                  @Palacio de los Deportes, Tucumán
-                </p>
-              </div>
-
-              <h3 className="font-teko font-bold text-5xl text-white uppercase leading-none mt-6">
-                VS Gimnasia
-              </h3>
-
-              <div
-                className="absolute bottom-4 right-4 w-10 h-10 flex items-center justify-center"
-                style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '50%' }}
-              >
-                <ArrowDown />
-              </div>
-            </div>
-
-            {/* Last score card — like the reference */}
-            <div
-              className="p-8 flex flex-col justify-center items-center text-center"
-              style={{
-                background: '#F5F5F0',
-                borderRadius: '16px',
-                color: '#121212',
-              }}
-            >
-              <p className="font-oswald font-bold text-[10px] uppercase tracking-[0.2em] mb-3" style={{ color: '#666' }}>
-                {loading ? '...' : latestMatch?.date ? new Date(latestMatch.date + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase() : '27 ABRIL 2026'}
+          {/* Proximo Partido Naranja (Right) */}
+          <div 
+            className="w-full lg:w-[400px] flex flex-col justify-between p-10 relative overflow-hidden"
+            style={{ background: 'var(--color-accent)', borderRadius: '16px' }}
+          >
+            <div>
+              <p className="font-oswald font-bold text-[10px] uppercase tracking-[0.2em] text-white opacity-80 mb-2">
+                Próximo Partido
               </p>
+              <p className="font-oswald text-xs uppercase tracking-wider text-white opacity-90">
+                04 MAYO 2026 — 21:00
+              </p>
+              <p className="font-oswald text-[10px] uppercase tracking-wider text-white opacity-60 mt-1">
+                @Palacio de los Deportes
+              </p>
+            </div>
 
-              <div className="flex items-center gap-6">
-                <span className="font-teko font-bold leading-none" style={{ fontSize: '5rem', color: '#999' }}>
-                  {loading ? '--' : latestMatch?.awayScore ?? '--'}
-                </span>
-                <div className="text-center">
-                  <p className="font-teko font-bold text-lg uppercase tracking-wider" style={{ color: '#333', borderLeft: '3px solid var(--color-brand)', borderRight: '3px solid var(--color-brand)', padding: '4px 12px' }}>
-                    Final Score
-                  </p>
-                  <p className="font-oswald text-[9px] uppercase tracking-[0.15em] mt-2" style={{ color: '#888' }}>
-                    {loading ? '...' : `${latestMatch?.awayTeam?.name} vs ${latestMatch?.homeTeam?.name}`}
-                  </p>
-                </div>
-                <span className="font-teko font-bold leading-none" style={{ fontSize: '5rem', color: '#121212' }}>
-                  {loading ? '--' : latestMatch?.homeScore ?? '--'}
-                </span>
-              </div>
+            <h3 className="font-teko font-bold text-6xl text-white uppercase leading-none mt-10">
+              VS GIMNASIA
+            </h3>
+
+            <div className="mt-10 self-end text-black">
+              <ArrowRight />
             </div>
           </div>
+
         </div>
       </section>
 
-      {/* ════════════════════════════════════
-          BOTTOM NAV AREA — mini stats
-      ════════════════════════════════════ */}
-      <section className="py-12 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <div className="app-container">
-          <div className="grid grid-cols-4 gap-4 text-center">
-            {[
-              { val: '106+', label: 'Años' },
-              { val: '5K+',  label: 'Socios' },
-              { val: '3',    label: 'Títulos' },
-              { val: '18',   label: 'Jugadores' },
-            ].map((s, i) => (
-              <div key={i}>
-                <span className="block font-teko font-bold text-4xl text-white">{s.val}</span>
-                <span className="block font-oswald text-[9px] uppercase tracking-[0.2em]" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                  {s.label}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════
-          SHOP PREVIEW
-      ════════════════════════════════════ */}
-      <section className="py-12 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <div className="app-container">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="font-teko font-bold text-4xl text-white uppercase">Shop</h2>
-            <Link to="/tienda" className="btn-ghost">Ver Todo →</Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
-              { name: 'Camiseta Titular', price: '$45.000' },
-              { name: 'Buzo Entrenamiento', price: '$55.000' },
-              { name: 'Kit Completo', price: '$85.000' },
-            ].map((p, i) => (
-              <Link to="/tienda" key={i} className="card group" style={{ borderRadius: '12px' }}>
-                <div className="relative overflow-hidden" style={{ height: '180px' }}>
-                  <img
-                    src="/shop-jerseys.png"
-                    alt={p.name}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    style={{ opacity: 0.8 }}
-                  />
-                </div>
-                <div className="p-4 flex justify-between items-center">
-                  <span className="font-oswald font-bold text-sm text-white uppercase">{p.name}</span>
-                  <span className="font-teko font-bold text-xl" style={{ color: 'var(--color-accent)' }}>{p.price}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
     </div>
   );
 };

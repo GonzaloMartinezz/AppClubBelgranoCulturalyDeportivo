@@ -1,156 +1,186 @@
 import { useState, useEffect } from 'react';
 import api from '../core/api/client';
 
-const mockMatches = [
-  { _id: '1', date: '2026-04-14', time: '22:00', homeTeam: { name: 'San Martín' }, awayTeam: { name: 'Belgrano' }, status: 'FINALIZADO', homeScore: 70, awayScore: 88, venue: 'San Martín Arena', competition: { name: 'Liga Federal' } },
-  { _id: '2', date: '2026-04-21', time: '21:30', homeTeam: { name: 'Belgrano' }, awayTeam: { name: 'Talleres' }, status: 'FINALIZADO', homeScore: 82, awayScore: 78, venue: 'Palacio de los Deportes', competition: { name: 'Liga Federal' } },
-  { _id: '3', date: '2026-05-04', time: '21:00', homeTeam: { name: 'Belgrano' }, awayTeam: { name: 'Gimnasia' }, status: 'PROGRAMADO', homeScore: null, awayScore: null, venue: 'Palacio de los Deportes', competition: { name: 'Liga Federal' } },
-  { _id: '4', date: '2026-05-11', time: '21:00', homeTeam: { name: 'Belgrano' }, awayTeam: { name: 'Estudiantes' }, status: 'PROGRAMADO', homeScore: null, awayScore: null, venue: 'Ateneo', competition: { name: 'Liga Federal' } },
-  { _id: '5', date: '2026-05-18', time: '20:30', homeTeam: { name: 'Mitre' }, awayTeam: { name: 'Belgrano' }, status: 'PROGRAMADO', homeScore: null, awayScore: null, venue: 'Club Mitre', competition: { name: 'Liga Federal' } },
-  { _id: '6', date: '2026-05-25', time: '21:00', homeTeam: { name: 'Belgrano' }, awayTeam: { name: 'Rosario' }, status: 'PROGRAMADO', homeScore: null, awayScore: null, venue: 'Palacio de los Deportes', competition: { name: 'Liga Federal' } },
-];
-
-const formatDate = (dateStr) => {
+const fmt = (dateStr) => {
   if (!dateStr) return {};
-  const d = new Date(dateStr + 'T00:00:00');
+  const d = new Date(dateStr);
   return {
     day:   d.toLocaleDateString('es-AR', { day: '2-digit' }),
     month: d.toLocaleDateString('es-AR', { month: 'short' }).toUpperCase(),
+    full:  d.toLocaleDateString('es-AR', { weekday:'short', day:'2-digit', month:'short' }).toUpperCase(),
   };
 };
 
+const STATUS_MAP = {
+  FINALIZADO: { label:'Final', color:'rgba(255,255,255,0.3)' },
+  EN_JUEGO:   { label:'En juego', color:'#4ade80' },
+  PROGRAMADO: { label:'Programado', color:'var(--color-accent)' },
+  SUSPENDIDO: { label:'Suspendido', color:'#F87171' },
+};
+
+const SectionTitle = ({ title, subtitle, align = 'center' }) => (
+  <div style={{ marginBottom: '40px', textAlign: align }}>
+    <h2 style={{ fontFamily: 'var(--font-condensed)', fontWeight: 900, fontSize: 'clamp(2.5rem,6vw,4.5rem)', textTransform: 'uppercase', lineHeight: 0.9, color: 'white', letterSpacing: '-0.02em' }}>
+      {title}
+    </h2>
+    {subtitle && (
+      <p style={{ fontFamily: 'var(--font-oswald)', fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-accent)', marginTop: '8px' }}>
+        {subtitle}
+      </p>
+    )}
+  </div>
+);
+
+const fallbackMatches = [
+  { _id: 'm1', date: new Date('2026-05-06T21:30:00'), time: '21:30', homeTeam: { name: 'Gimnasia y Tiro' }, awayTeam: { name: 'Belgrano' }, venue: 'Salta', status: 'PROGRAMADO' },
+  { _id: 'm2', date: new Date('2026-05-10T21:00:00'), time: '21:00', homeTeam: { name: 'Belgrano' }, awayTeam: { name: 'Jujuy Básquet' }, venue: 'Augusto Machado', status: 'PROGRAMADO' },
+  { _id: 'm_last', date: new Date('2026-04-24T22:00:00'), time: '22:00', homeTeam: { name: 'Belgrano' }, awayTeam: { name: 'Talleres de Tafí Viejo' }, venue: 'Augusto Machado', status: 'FINALIZADO', score: { home: 76, away: 71 } },
+  { _id: 'm_p1', date: new Date('2026-04-18T21:00:00'), time: '21:00', homeTeam: { name: 'Belgrano' }, awayTeam: { name: 'Nicolás Avellaneda' }, venue: 'Augusto Machado', status: 'FINALIZADO', score: { home: 68, away: 56 } },
+  { _id: 'm_p2', date: new Date('2026-04-12T22:00:00'), time: '22:00', homeTeam: { name: 'Belgrano' }, awayTeam: { name: 'Asociación Mitre' }, venue: 'Augusto Machado', status: 'FINALIZADO', score: { home: 82, away: 74 } },
+  { _id: 'm_p3', date: new Date('2026-04-08T21:30:00'), time: '21:30', homeTeam: { name: 'San Martín' }, awayTeam: { name: 'Belgrano' }, venue: 'Complejo Natalio Mirkin', status: 'FINALIZADO', score: { home: 83, away: 74 } }
+];
+
 const FixturePage = () => {
-  const [matches, setMatches] = useState([]);
+  const [matches, setMatches] = useState(fallbackMatches);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter]   = useState('ALL');
+  const [filter,  setFilter]  = useState('ALL');
 
   useEffect(() => {
-    api.get('/matches')
-      .then(r => setMatches(r.data.data || []))
-      .catch(() => setMatches(mockMatches))
+    api.get('/matches?sort=-date&limit=30')
+      .then(r => {
+        if (r.data.data && r.data.data.length > 0) {
+          setMatches(r.data.data);
+        }
+      })
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
-  const today = new Date();
-  const nextMatch = matches.find(m => new Date(m.date + 'T00:00:00') >= today && (m.status === 'PROGRAMADO' || m.status === 'SCHEDULED'));
-
   const filtered = filter === 'ALL' ? matches
-    : filter === 'DONE'
-      ? matches.filter(m => m.status === 'FINALIZADO' || m.status === 'FINAL')
-      : matches.filter(m => m.status === 'PROGRAMADO' || m.status === 'SCHEDULED');
+    : filter === 'DONE' ? matches.filter(m => m.status === 'FINALIZADO')
+    : matches.filter(m => m.status === 'PROGRAMADO');
+
+  const FILTERS = [{ k:'ALL', l:'Todos' }, { k:'PENDING', l:'Próximos' }, { k:'DONE', l:'Resultados' }];
 
   return (
-    <div className="pt-16" style={{ background: 'var(--color-dark)' }}>
+    <div style={{ background:'var(--color-dark)', paddingTop:'68px', minHeight:'100vh' }}>
 
-      {/* Header */}
-      <section className="relative overflow-hidden py-16 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <div className="app-container relative z-10">
-          <div className="section-hero-title absolute top-1/2 left-0 -translate-y-1/2 whitespace-nowrap pointer-events-none select-none" style={{ fontSize: 'clamp(6rem, 20vw, 12rem)' }}>
+      {/* ── HERO ── */}
+      <section style={{ position: 'relative', height: '40vh', minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <img src="/fans-crowd.png" alt="Fixture" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.2 }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(28,28,28,0.2) 0%, var(--color-dark) 100%)' }} />
+        <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', width: '100%', padding: '0 20px' }}>
+          <p style={{ fontFamily: 'var(--font-oswald)', fontSize: '12px', letterSpacing: '0.4em', textTransform: 'uppercase', color: 'var(--color-accent)', marginBottom: '10px' }}>
+            Temporada 2026
+          </p>
+          <h1 style={{ fontFamily: 'var(--font-condensed)', fontWeight: 900, fontSize: 'clamp(4rem, 15vw, 8rem)', textTransform: 'uppercase', color: 'white', lineHeight: 0.8, margin: 0 }}>
             FIXTURE
-          </div>
-          <div className="relative z-10">
-            <p className="section-label mb-4">Temporada 2026</p>
-            <h1 className="font-teko font-bold uppercase leading-[0.88] tracking-tight text-white" style={{ fontSize: 'clamp(3.5rem, 10vw, 7rem)' }}>
-              Fixture &<br /><span style={{ color: 'var(--color-accent)' }}>Resultados</span>
-            </h1>
-          </div>
+          </h1>
         </div>
       </section>
 
-      {/* Filters */}
-      <div className="sticky top-16 z-30 border-b" style={{ background: 'rgba(18,18,18,0.95)', backdropFilter: 'blur(12px)', borderColor: 'rgba(255,255,255,0.06)' }}>
-        <div className="app-container flex gap-2 py-3">
-          {[{ key: 'ALL', label: 'Todos' }, { key: 'PENDING', label: 'Próximos' }, { key: 'DONE', label: 'Resultados' }].map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              className="font-oswald font-bold text-[12px] uppercase tracking-[0.1em] px-4 py-2 transition-all duration-200"
-              style={{
-                borderRadius: '10px',
-                background: filter === f.key ? 'rgba(255,255,255,0.08)' : 'transparent',
-                color: filter === f.key ? '#fff' : 'rgba(255,255,255,0.4)',
-              }}
-            >
-              {f.label}
-            </button>
-          ))}
+      {/* Sticky filter bar */}
+      <div className="sticky top-[68px] z-30" style={{ background:'rgba(28,28,28,0.95)', backdropFilter:'blur(12px)', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+        <div className="app-container flex justify-center py-4">
+          <div className="flex gap-2">
+            {FILTERS.map(f => (
+              <button key={f.k} onClick={() => setFilter(f.k)}
+                className="font-oswald font-bold text-[12px] uppercase tracking-widest px-4 py-2 transition-all duration-200"
+                style={{ borderRadius: '10px', background: filter === f.k ? 'var(--color-accent)' : 'transparent', color: filter === f.k ? '#fff' : 'rgba(255,255,255,0.4)' }}>
+                {f.l}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Match list */}
-      <section className="py-8">
-        <div className="app-container">
+      <section style={{ padding:'80px 0' }}>
+        <div className="app-container" style={{ maxWidth: '800px', margin: '0 auto' }}>
           {loading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="card" style={{ height: '80px', borderRadius: '12px', opacity: 0.3 }} />
+            <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
+              {Array(6).fill(0).map((_,i) => (
+                <div key={i} style={{ height:'100px', background:'var(--color-surface-2)', borderRadius: '24px', opacity:0.4 }} />
               ))}
             </div>
+          ) : filtered.length === 0 ? (
+            <div style={{ textAlign:'center', padding:'80px 0', background: 'var(--color-surface-2)', borderRadius: '24px' }}>
+              <p style={{ fontFamily:'var(--font-oswald)', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', letterSpacing: '0.1em' }}>
+                No hay partidos disponibles
+              </p>
+            </div>
           ) : (
-            <div className="space-y-3">
-              {filtered.length === 0 && (
-                <p className="text-center py-16 font-oswald uppercase tracking-widest text-sm" style={{ color: 'rgba(255,255,255,0.2)' }}>
-                  No hay partidos
-                </p>
-              )}
-              {filtered.map((match) => {
-                const { day, month } = formatDate(match.date);
-                const isFinal  = match.status === 'FINALIZADO' || match.status === 'FINAL';
-                const isBelHome = (match.homeTeam?.name || '').toLowerCase().includes('belgrano');
-                const belScore  = isBelHome ? match.homeScore : match.awayScore;
-                const rivScore  = isBelHome ? match.awayScore : match.homeScore;
-                const rival     = isBelHome ? match.awayTeam?.name : match.homeTeam?.name;
-                const won       = isFinal && belScore > rivScore;
-                const isNext    = nextMatch?._id === match._id;
+            <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
+              {filtered.map((m, i) => {
+                const { day, month } = fmt(m.date);
+                const fin = m.status === 'FINALIZADO';
+                const belHome = (m.homeTeam?.name||'').toLowerCase().includes('belgrano');
+                const belScore = belHome ? m.score?.home : m.score?.away;
+                const rivScore = belHome ? m.score?.away : m.score?.home;
+                const rival    = belHome ? m.awayTeam?.name : m.homeTeam?.name;
+                const won      = fin && belScore > rivScore;
+                const st       = STATUS_MAP[m.status] || STATUS_MAP.PROGRAMADO;
+                
+                // Color alternates
+                const cardColors = ['#1D4ED8', '#B91C1C', '#047857', '#C2410C'];
+                const bgColor = cardColors[i % cardColors.length];
 
                 return (
-                  <div
-                    key={match._id}
-                    className="card-flat group flex items-center gap-4 p-4"
-                    style={{
-                      borderRadius: '12px',
-                      borderColor: isNext ? 'var(--color-accent)' : undefined,
+                  <div key={m._id}
+                    style={{ 
+                      display:'flex', 
+                      alignItems:'center', 
+                      gap:'20px', 
+                      padding:'20px 24px', 
+                      background: fin ? 'var(--color-surface-2)' : bgColor,
+                      borderRadius: '24px',
+                      border: '1px solid rgba(255,255,255,0.05)',
+                      transition: 'transform 0.2s ease',
+                      cursor: 'pointer'
                     }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                   >
-                    {/* Date */}
-                    <div className="text-center w-12 flex-shrink-0">
-                      <span className="block font-teko font-bold text-2xl text-white leading-none">{day}</span>
-                      <span className="block font-oswald text-[9px] uppercase tracking-wider" style={{ color: 'var(--color-accent)' }}>{month}</span>
+                    {/* Date Block */}
+                    <div style={{ 
+                      minWidth:'60px', 
+                      textAlign:'center', 
+                      flexShrink:0,
+                      background: 'rgba(255,255,255,0.95)',
+                      color: 'var(--color-dark)',
+                      padding: '10px',
+                      borderRadius: '16px'
+                    }}>
+                      <span style={{ display:'block', fontFamily:'var(--font-condensed)', fontWeight:900, fontSize:'1.8rem', lineHeight:1 }}>{day || '—'}</span>
+                      <span style={{ fontFamily:'var(--font-oswald)', fontSize:'10px', fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase' }}>{month || '—'}</span>
                     </div>
 
                     {/* Teams */}
-                    <div className="flex-1 flex items-center gap-3">
-                      <div className="w-9 h-9 flex items-center justify-center font-oswald font-bold text-[10px] text-white flex-shrink-0" style={{ background: 'var(--color-brand)', borderRadius: '8px' }}>
-                        BEL
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <p style={{ fontFamily:'var(--font-condensed)', fontWeight:900, fontSize:'1.5rem', textTransform:'uppercase', color:'white', lineHeight:1, marginBottom:'4px' }}>
+                        BELGRANO <span style={{ color: fin ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.7)', fontSize: '1rem', margin: '0 8px' }}>VS</span> {rival || 'RIVAL'}
+                      </p>
+                      <p style={{ fontFamily:'var(--font-oswald)', fontSize:'11px', letterSpacing:'0.1em', textTransform:'uppercase', color:'rgba(255,255,255,0.6)' }}>
+                        {m.venue || 'Estadio Local'} · {m.time || '18:00'}hs
+                        {m.competition?.name && ` · ${m.competition.name}`}
+                      </p>
+                    </div>
+
+                    {/* Score / Status */}
+                    {fin ? (
+                      <div style={{ textAlign:'right', flexShrink:0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                        <span style={{ fontFamily:'var(--font-condensed)', fontWeight:900, fontSize:'2rem', color: won ? 'var(--color-accent)' : 'white', lineHeight:1 }}>
+                          {belScore} - {rivScore}
+                        </span>
+                        <span style={{ fontFamily:'var(--font-oswald)', fontSize:'9px', letterSpacing:'0.12em', textTransform:'uppercase', color: won ? 'var(--color-accent)' : 'rgba(255,255,255,0.4)', background: 'rgba(0,0,0,0.2)', padding: '2px 6px', borderRadius: '4px', marginTop: '4px' }}>
+                          {won ? 'Victoria' : 'Derrota'}
+                        </span>
                       </div>
-                      <span className="font-oswald font-bold text-sm uppercase text-white hidden sm:block">Belgrano</span>
-                    </div>
-
-                    {/* Score */}
-                    <div className="text-center flex-shrink-0 px-4">
-                      {isFinal ? (
-                        <div className="flex items-center gap-2">
-                          <span className={`font-teko font-bold text-3xl ${won ? '' : ''}`} style={{ color: won ? 'var(--color-brand)' : '#fff' }}>{belScore}</span>
-                          <span className="font-teko text-xl" style={{ color: 'rgba(255,255,255,0.2)' }}>-</span>
-                          <span className={`font-teko font-bold text-3xl`} style={{ color: !won ? '#F87171' : 'rgba(255,255,255,0.4)' }}>{rivScore}</span>
-                        </div>
-                      ) : (
-                        <span className="font-teko font-bold text-2xl" style={{ color: 'rgba(255,255,255,0.15)' }}>VS</span>
-                      )}
-                    </div>
-
-                    {/* Rival */}
-                    <div className="flex-1 flex items-center gap-3">
-                      <div className="w-9 h-9 flex items-center justify-center font-oswald font-bold text-[10px] flex-shrink-0" style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '8px', color: 'rgba(255,255,255,0.4)' }}>
-                        {(rival || '???').substring(0, 3).toUpperCase()}
-                      </div>
-                      <span className="font-oswald font-bold text-sm uppercase hidden sm:block" style={{ color: 'rgba(255,255,255,0.5)' }}>{rival}</span>
-                    </div>
-
-                    {/* Badge */}
-                    <span className={`badge flex-shrink-0 ${isFinal ? (won ? 'badge-success' : 'badge-danger') : isNext ? 'badge-accent' : 'badge-neutral'}`}>
-                      {isFinal ? (won ? 'Victoria' : 'Derrota') : isNext ? 'Próximo' : 'Pendiente'}
-                    </span>
+                    ) : (
+                      <button className="btn-secondary" style={{ flexShrink: 0, padding: '8px 16px', fontSize: '11px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white' }}>
+                        Ver Detalles
+                      </button>
+                    )}
                   </div>
                 );
               })}

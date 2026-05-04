@@ -1,114 +1,129 @@
-import { useState } from 'react';
-import api from '../core/api/client';
+import React, { useState } from 'react';
+
+const SectionTitle = ({ title, subtitle, align = 'center' }) => (
+  <div style={{ marginBottom: '40px', textAlign: align }}>
+    <h2 style={{ fontFamily: 'var(--font-condensed)', fontWeight: 900, fontSize: 'clamp(2.5rem,6vw,4.5rem)', textTransform: 'uppercase', lineHeight: 0.9, color: 'white', letterSpacing: '-0.02em' }}>
+      {title}
+    </h2>
+    {subtitle && (
+      <p style={{ fontFamily: 'var(--font-oswald)', fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-accent)', marginTop: '8px' }}>
+        {subtitle}
+      </p>
+    )}
+  </div>
+);
 
 const ContactoPage = () => {
-  const [form, setForm]       = useState({ nombre: '', apellido: '', email: '', telefono: '', interes: '', mensaje: '' });
-  const [sending, setSending] = useState(false);
-  const [sent, setSent]       = useState(false);
+  const [form, setForm] = useState({ nombre: '', email: '', asunto: '', mensaje: '' });
+  const [sent, setSent]   = useState(false);
 
-  const handle = (e) => setForm({ ...form, [e.target.id]: e.target.value });
+  const handle = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const submit = async (e) => {
+  const submit = (e) => {
     e.preventDefault();
-    setSending(true);
-    try { await api.post('/contact', form); } catch {}
+    if (!form.nombre || !form.email || !form.mensaje) return;
     setSent(true);
-    setSending(false);
   };
 
-  const info = [
-    { label: 'Dirección', value: 'San Martín 500, Barrio Sur\nSan Miguel de Tucumán', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z' },
-    { label: 'Teléfono',  value: '+54 381 456-7890',         icon: 'M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z' },
-    { label: 'Email',     value: 'info@belgrano.com',        icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
-    { label: 'Horarios',  value: 'Lun–Vie: 09:00 – 21:00',  icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
-  ];
-
   return (
-    <div className="pt-16" style={{ background: 'var(--color-dark)' }}>
+    <div style={{ background: 'var(--color-dark)', paddingTop: '68px', minHeight: '100vh' }}>
 
-      {/* Header */}
-      <section className="relative overflow-hidden py-16 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <div className="app-container relative z-10">
-          <div className="section-hero-title absolute top-1/2 left-0 -translate-y-1/2 whitespace-nowrap pointer-events-none select-none" style={{ fontSize: 'clamp(6rem, 20vw, 12rem)' }}>
-            CONTATTI
-          </div>
-          <div className="relative z-10">
-            <p className="section-label mb-4">Sumate a la Familia</p>
-            <h1 className="font-teko font-bold uppercase leading-[0.88] tracking-tight text-white" style={{ fontSize: 'clamp(3.5rem, 10vw, 7rem)' }}>
-              Contacto<br /><span style={{ color: 'var(--color-accent)' }}>& Socios</span>
-            </h1>
-          </div>
+      {/* ── HERO ── */}
+      <section style={{ position: 'relative', height: '40vh', minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <img src="/fans-crowd.png" alt="Contacto" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.2 }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(28,28,28,0.2) 0%, var(--color-dark) 100%)' }} />
+        <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', width: '100%', padding: '0 20px' }}>
+          <p style={{ fontFamily: 'var(--font-oswald)', fontSize: '12px', letterSpacing: '0.4em', textTransform: 'uppercase', color: 'var(--color-accent)', marginBottom: '10px' }}>
+            Escribinos
+          </p>
+          <h1 style={{ fontFamily: 'var(--font-condensed)', fontWeight: 900, fontSize: 'clamp(4rem, 15vw, 8rem)', textTransform: 'uppercase', color: 'white', lineHeight: 0.8, margin: 0 }}>
+            CONTACTO
+          </h1>
         </div>
       </section>
 
-      {/* Content */}
-      <section className="py-10">
+      {/* ── Content ── */}
+      <section style={{ padding: '80px 0' }}>
         <div className="app-container">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
 
-            {/* Info */}
-            <div className="space-y-6">
-              <h2 className="font-teko font-bold text-white uppercase leading-[0.9] text-4xl">
-                ¿Querés ser parte de algo más grande?
-              </h2>
-              <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                Club Belgrano es más que básquet. Somos comunidad, historia y pasión. Completá el formulario y te contactamos.
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                {info.map((item, i) => (
-                  <div key={i} className="card-flat p-4 flex gap-3" style={{ borderRadius: '10px' }}>
-                    <div className="w-9 h-9 flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(249,115,22,0.08)', borderRadius: '8px' }}>
-                      <svg className="w-4 h-4" style={{ color: 'var(--color-accent)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
-                      </svg>
+            {/* Left — info */}
+            <div className="md:col-span-2 flex flex-col gap-6">
+              <SectionTitle title="Información" subtitle="Datos de Contacto" align="left" />
+              
+              <div style={{ background: 'var(--color-surface-2)', padding: '32px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)' }}>
+                <h3 style={{ fontFamily: 'var(--font-teko)', fontWeight: 700, fontSize: '2rem', color: 'white', textTransform: 'uppercase', marginBottom: '16px' }}>Belgrano CyD</h3>
+                <p style={{ fontFamily: 'var(--font-oswald)', fontSize: '14px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, marginBottom: '32px' }}>
+                  Más que un club, una familia. Si tenés consultas, sugerencias o querés sumarte al proyecto, escribinos.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  {[
+                    { icon: '📍', label: 'Dirección', value: 'San Martín 500, SM de Tucumán' },
+                    { icon: '📞', label: 'Teléfono', value: '+54 381 456-7890' },
+                    { icon: '✉️', label: 'Email', value: 'info@belgrano.com' },
+                    { icon: '🕐', label: 'Horario', value: 'Lun – Vie: 9:00 a 18:00 hs' },
+                  ].map((item) => (
+                    <div key={item.label} style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>
+                        {item.icon}
+                      </div>
+                      <div>
+                        <p style={{ fontFamily: 'var(--font-oswald)', fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>{item.label}</p>
+                        <p style={{ fontFamily: 'var(--font-condensed)', fontWeight: 900, fontSize: '1.2rem', color: 'white', lineHeight: 1 }}>{item.value}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-oswald text-[9px] uppercase tracking-[0.2em] mb-0.5" style={{ color: 'rgba(255,255,255,0.25)' }}>{item.label}</p>
-                      <p className="text-xs text-white whitespace-pre-line">{item.value}</p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Form */}
-            {sent ? (
-              <div className="card flex flex-col items-center justify-center text-center py-12 px-6" style={{ borderRadius: '16px' }}>
-                <div className="w-14 h-14 flex items-center justify-center mb-5" style={{ background: 'rgba(16,185,129,0.1)', borderRadius: '14px' }}>
-                  <svg className="w-7 h-7" style={{ color: '#34D399' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <h3 className="font-teko text-2xl font-bold text-white uppercase mb-2">¡Mensaje Enviado!</h3>
-                <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.4)' }}>Te responderemos a la brevedad.</p>
-                <button onClick={() => { setSent(false); setForm({ nombre: '', apellido: '', email: '', telefono: '', interes: '', mensaje: '' }); }} className="btn-secondary">
-                  Enviar Otro
-                </button>
-              </div>
-            ) : (
-              <div className="card p-6" style={{ borderRadius: '16px' }}>
-                <h3 className="font-teko text-xl font-bold text-white uppercase mb-6">Formulario</h3>
-                <form onSubmit={submit} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <input type="text" id="nombre" value={form.nombre} onChange={handle} className="input-base" placeholder="Nombre" required />
-                    <input type="text" id="apellido" value={form.apellido} onChange={handle} className="input-base" placeholder="Apellido" required />
+            {/* Right — form */}
+            <div className="md:col-span-3">
+              <div style={{ background: 'var(--color-surface)', padding: '40px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                {sent ? (
+                  <div className="flex flex-col items-center justify-center h-full gap-4 text-center py-20">
+                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(16,185,129,0.15)', border: '2px solid rgba(16,185,129,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', marginBottom: '16px' }}>
+                      ✅
+                    </div>
+                    <h3 style={{ fontFamily: 'var(--font-condensed)', fontWeight: 900, fontSize: '3rem', color: 'white', textTransform: 'uppercase', lineHeight: 0.9 }}>¡Mensaje Enviado!</h3>
+                    <p style={{ fontFamily: 'var(--font-oswald)', fontSize: '14px', color: 'rgba(255,255,255,0.6)' }}>Te responderemos a la brevedad.</p>
+                    <button className="btn-secondary mt-6" style={{ borderRadius: '12px', padding: '12px 24px' }} onClick={() => { setSent(false); setForm({ nombre: '', email: '', asunto: '', mensaje: '' }); }}>
+                      Enviar otro mensaje
+                    </button>
                   </div>
-                  <input type="email" id="email" value={form.email} onChange={handle} className="input-base" placeholder="Email" required />
-                  <input type="tel" id="telefono" value={form.telefono} onChange={handle} className="input-base" placeholder="Teléfono" />
-                  <select id="interes" value={form.interes} onChange={handle} className="input-base" style={{ appearance: 'none', cursor: 'pointer' }}>
-                    <option value="" style={{ background: 'var(--color-surface)' }}>Motivo de consulta</option>
-                    <option value="socio" style={{ background: 'var(--color-surface)' }}>Quiero ser socio</option>
-                    <option value="categoria" style={{ background: 'var(--color-surface)' }}>Inscribir a mi hijo</option>
-                    <option value="sponsor" style={{ background: 'var(--color-surface)' }}>Sponsoreo</option>
-                    <option value="otro" style={{ background: 'var(--color-surface)' }}>Otro</option>
-                  </select>
-                  <textarea id="mensaje" value={form.mensaje} onChange={handle} rows={3} className="input-base resize-none" placeholder="Mensaje (opcional)" />
-                  <button type="submit" disabled={sending} className="btn-accent w-full" style={{ opacity: sending ? 0.7 : 1 }}>
-                    {sending ? 'Enviando...' : 'Enviar Mensaje'}
-                  </button>
-                </form>
+                ) : (
+                  <form onSubmit={submit} className="flex flex-col gap-5">
+                    <h3 style={{ fontFamily: 'var(--font-teko)', fontWeight: 700, fontSize: '2.5rem', color: 'white', textTransform: 'uppercase', marginBottom: '8px' }}>Formulario de Contacto</h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div>
+                        <label style={{ fontFamily: 'var(--font-oswald)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: '8px' }}>Nombre *</label>
+                        <input name="nombre" type="text" placeholder="Tu nombre" className="input-base" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', width: '100%' }} value={form.nombre} onChange={handle} required />
+                      </div>
+                      <div>
+                        <label style={{ fontFamily: 'var(--font-oswald)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: '8px' }}>Email *</label>
+                        <input name="email" type="email" placeholder="tu@email.com" className="input-base" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', width: '100%' }} value={form.email} onChange={handle} required />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ fontFamily: 'var(--font-oswald)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: '8px' }}>Asunto</label>
+                      <input name="asunto" type="text" placeholder="¿En qué te podemos ayudar?" className="input-base" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', width: '100%' }} value={form.asunto} onChange={handle} />
+                    </div>
+
+                    <div>
+                      <label style={{ fontFamily: 'var(--font-oswald)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: '8px' }}>Mensaje *</label>
+                      <textarea name="mensaje" rows={5} placeholder="Escribí tu mensaje acá..." className="input-base" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', width: '100%', resize: 'vertical', minHeight: '120px' }} value={form.mensaje} onChange={handle} required />
+                    </div>
+
+                    <button type="submit" className="btn-accent mt-4" style={{ width: '100%', padding: '16px', borderRadius: '12px', fontSize: '14px' }}>
+                      ENVIAR MENSAJE
+                    </button>
+                  </form>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
       </section>

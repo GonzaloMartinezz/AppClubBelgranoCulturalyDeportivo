@@ -1,73 +1,133 @@
 import { Link } from 'react-router-dom';
 
-const navLinks = [
-  { label: 'Inicio',   path: '/' },
-  { label: 'Equipo',   path: '/equipo' },
-  { label: 'Fixture',  path: '/fixture' },
-  { label: 'Galería',  path: '/galeria' },
-  { label: 'Shop',     path: '/tienda' },
-  { label: 'Contacto', path: '/contacto' },
-];
-
 const Footer = () => (
-  <footer
-    className="border-t"
-    style={{ background: 'var(--color-surface)', borderColor: 'rgba(255,255,255,0.06)' }}
-  >
-    <div className="app-container py-12">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+  <footer>
 
-        {/* Brand */}
-        <div className="space-y-3">
-          <Link to="/" className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 flex items-center justify-center font-teko font-bold text-white"
-              style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}
+    {/* ── Sponsors strip ── */}
+    <div style={{ background: 'var(--color-surface-2)', borderTop: '1px solid rgba(255,255,255,0.07)', borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '28px 0' }}>
+      <div className="app-container text-center mb-4">
+        <p style={{ fontFamily: 'var(--font-oswald)', fontSize: '9px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>
+          Club Belgrano Cultural y Deportivo se sostiene gracias al apoyo de nuestros socios y patrocinadores
+        </p>
+      </div>
+      {/* Marquee logos placeholder */}
+      <div style={{ overflow: 'hidden' }}>
+        <div style={{ display: 'flex', gap: '60px', alignItems: 'center', padding: '0 40px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          {['Liga Federal', 'Asociación Tucumana', 'Municipalidad SMT', 'Sport Club', 'BasketTuc'].map((s) => (
+            <span
+              key={s}
+              style={{
+                fontFamily: 'var(--font-condensed)',
+                fontWeight: 700,
+                fontSize: '13px',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: 'rgba(255,255,255,0.2)',
+              }}
             >
-              CB
-            </div>
-            <div className="flex flex-col leading-none">
-              <span className="font-teko font-bold text-lg text-white uppercase tracking-wider">Belgrano</span>
-              <span className="font-oswald text-[9px] uppercase tracking-[0.2em]" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                Cultural & Deportivo · SMT
-              </span>
-            </div>
-          </Link>
-          <p className="text-xs leading-relaxed max-w-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            Más que un club, una familia. Desde 1920 forjando historia en el básquet tucumano.
-          </p>
-        </div>
-
-        {/* Links */}
-        <div>
-          <h4 className="font-oswald font-bold text-[10px] uppercase tracking-[0.2em] text-white mb-4">Navegación</h4>
-          <ul className="grid grid-cols-2 gap-2">
-            {navLinks.map((link) => (
-              <li key={link.path}>
-                <Link to={link.path} className="text-xs transition-colors hover:text-white" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Contact */}
-        <div>
-          <h4 className="font-oswald font-bold text-[10px] uppercase tracking-[0.2em] text-white mb-4">Contacto</h4>
-          <ul className="space-y-2 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            <li>info@belgrano.com</li>
-            <li>+54 381 456-7890</li>
-            <li>San Martín 500, Tucumán</li>
-          </ul>
+              {s}
+            </span>
+          ))}
         </div>
       </div>
+    </div>
 
-      <div className="divider mt-8 mb-6" />
+    {/* ── Info strip ── */}
+    <div
+      style={{
+        background: 'var(--color-accent)',
+        padding: '10px 0',
+        display: 'flex',
+        alignItems: 'center',
+      }}
+    >
+      <div className="app-container flex items-center justify-between flex-wrap gap-2">
+        <a
+          href="mailto:info@clubbelgrano.com"
+          style={{ fontFamily: 'var(--font-oswald)', fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}
+        >
+          MAIL → INFO@CLUBBELGRANO.COM
+        </a>
+        <a
+          href="https://instagram.com"
+          target="_blank"
+          rel="noreferrer"
+          style={{ fontFamily: 'var(--font-oswald)', fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}
+        >
+          INSTAGRAM → @CLUBBELGRANOTUC
+        </a>
+      </div>
+    </div>
 
-      <p className="text-[10px] font-oswald uppercase tracking-widest text-center" style={{ color: 'rgba(255,255,255,0.2)' }}>
-        © 2026 Club Belgrano Cultural y Deportivo
-      </p>
+    {/* ── MEGA NAME block ── */}
+    <div
+      style={{
+        background: 'var(--color-accent)',
+        overflow: 'hidden',
+        position: 'relative',
+      }}
+    >
+      <div style={{ padding: '20px 0 16px', overflow: 'hidden' }}>
+        <p
+          style={{
+            fontFamily: 'var(--font-condensed)',
+            fontWeight: 900,
+            fontSize: 'clamp(4rem, 12vw, 10rem)',
+            lineHeight: 0.85,
+            letterSpacing: '-0.02em',
+            textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.18)',
+            whiteSpace: 'nowrap',
+            paddingLeft: '28px',
+            paddingRight: '28px',
+          }}
+        >
+          CLUB BELGRANO CULTURAL Y DEPORTIVO
+        </p>
+      </div>
+
+      {/* Bottom row: privacy + nav logo + copyright */}
+      <div
+        className="app-container flex items-center justify-between flex-wrap gap-4"
+        style={{ paddingTop: '0', paddingBottom: '20px' }}
+      >
+        <Link
+          to="/"
+          style={{ fontFamily: 'var(--font-oswald)', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)' }}
+        >
+          Política de Privacidad
+        </Link>
+
+        {/* Center shield */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            width: '44px', height: '44px',
+            background: 'rgba(255,255,255,0.15)',
+            borderRadius: '10px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            overflow: 'hidden',
+          }}>
+            <img src="/club-logo.png" alt="CB" style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px', filter: 'brightness(0) invert(1)' }}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+          </div>
+          <div style={{
+            width: '44px', height: '44px',
+            background: 'rgba(255,255,255,0.1)',
+            borderRadius: '10px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width="20" height="14" viewBox="0 0 20 14" fill="none">
+              <rect width="20" height="2" rx="1" fill="rgba(255,255,255,0.6)"/>
+              <rect y="6" width="20" height="2" rx="1" fill="rgba(255,255,255,0.6)"/>
+              <rect y="12" width="20" height="2" rx="1" fill="rgba(255,255,255,0.6)"/>
+            </svg>
+          </div>
+        </div>
+
+        <p style={{ fontFamily: 'var(--font-oswald)', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)' }}>
+          © 2026 Club Belgrano · SMT
+        </p>
+      </div>
     </div>
   </footer>
 );
