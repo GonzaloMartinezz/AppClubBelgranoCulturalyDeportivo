@@ -1,22 +1,29 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 
-/* ─── Shield logo svg inline (Club Belgrano azul/blanco) ─── */
-const ShieldLogo = ({ size = 40 }) => (
-  <svg width={size} height={size} viewBox="0 0 80 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M40 2L6 16V48C6 67 21 82 40 88C59 82 74 67 74 48V16L40 2Z" fill="#1A3FA8" stroke="white" strokeWidth="2" />
+const ShieldLogo = () => (
+  <svg width="32" height="36" viewBox="0 0 80 90" fill="none">
+    <path d="M40 2L6 16V48C6 67 21 82 40 88C59 82 74 67 74 48V16L40 2Z" fill="#003087" stroke="white" strokeWidth="2" />
     <path d="M40 12L14 24V48C14 63 25 75 40 80C55 75 66 63 66 48V24L40 12Z" fill="white" />
-    <path d="M40 22L22 32V48C22 59 29 68 40 72C51 68 58 59 58 48V32L40 22Z" fill="#1A3FA8" />
-    <text x="40" y="56" textAnchor="middle" fontFamily="'Barlow Condensed',sans-serif" fontWeight="900" fontSize="14" fill="white" letterSpacing="1">CBCD</text>
+    <path d="M40 22L22 32V48C22 59 29 68 40 72C51 68 58 59 58 48V32L40 22Z" fill="#003087" />
+    <text x="40" y="56" textAnchor="middle" fontFamily="sans-serif" fontWeight="900" fontSize="13" fill="white" letterSpacing="0.5">CyD</text>
   </svg>
 );
+
+const navLinks = [
+  { label: 'Inicio', path: '/' },
+  { label: 'Plantel', path: '/plantel' },
+  { label: 'Fixture', path: '/fixture' },
+  { label: 'Posiciones', path: '/posiciones' },
+  { label: 'Stats', path: '/estadisticas' },
+  { label: 'Galería', path: '/galeria' },
+  { label: 'Tienda', path: '/tienda', accent: true },
+];
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const dropRef = useRef(null);
-  const closeTimer = useRef(null);
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 40);
@@ -26,128 +33,130 @@ const Navbar = () => {
 
   useEffect(() => { setOpen(false); }, [location.pathname]);
 
-  const openMenu = () => { clearTimeout(closeTimer.current); setOpen(true); };
-  const closeMenu = () => { closeTimer.current = setTimeout(() => setOpen(false), 200); };
-
-  const navLinks = [
-    { label: 'Inicio', path: '/' },
-    { label: 'Equipo', path: '/equipo' },
-    { label: 'Fixture', path: '/fixture' },
-    { label: 'Galería', path: '/galeria' },
-    { label: 'Contacto', path: '/contacto' },
-    { label: 'Shop', path: '/tienda', accent: true },
-  ];
-
   return (
-    <nav
-      className="fixed z-50 transition-all duration-500"
-      style={{
-        bottom: '30px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-      }}
-    >
-      <div
-        ref={dropRef}
-        className="relative flex items-center"
-        onMouseEnter={openMenu}
-        onMouseLeave={closeMenu}
+    <>
+      {/* Desktop nav — fixed top */}
+      <nav
+        className="hidden md:flex"
         style={{
-          background: 'rgba(20,20,20,0.85)',
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+          background: scrolled ? 'rgba(10,10,10,0.95)' : 'rgba(10,10,10,0.7)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: '100px',
-          padding: '6px',
-          display: 'flex',
-          gap: '10px',
+          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.08)' : 'none',
+          transition: 'all 0.3s',
+          padding: '0 32px',
           alignItems: 'center',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
-          transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-          overflow: 'hidden',
-          width: open ? 'auto' : 'auto' // We rely on flex + max-width for the animation
+          justifyContent: 'space-between',
+          height: '64px',
         }}
       >
-        {/* Logo Block */}
-        <div style={{
-          width: '46px', height: '46px',
-          background: 'white',
-          borderRadius: '50%',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
-        }}>
-          <img src="/club-logo.png" alt="CB" style={{ width: '80%', height: '80%', objectFit: 'contain' }}
-            onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-          <ShieldLogo size={24} color="#000" />
+        <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+          <ShieldLogo />
+          <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '20px', letterSpacing: '0.1em', color: 'white' }}>
+            BELGRANO CyD
+          </span>
+        </NavLink>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+          {navLinks.map(link => (
+            <NavLink
+              key={link.path}
+              to={link.path}
+              style={({ isActive }) => ({
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: '15px',
+                letterSpacing: '0.12em',
+                textDecoration: 'none',
+                color: link.accent ? '#FFD700' : isActive ? '#FFD700' : 'rgba(255,255,255,0.8)',
+                borderBottom: isActive ? '2px solid #FFD700' : '2px solid transparent',
+                paddingBottom: '2px',
+                transition: 'color 0.2s',
+              })}
+            >
+              {link.label}
+            </NavLink>
+          ))}
+          <NavLink
+            to="/socios"
+            style={{
+              background: '#003087',
+              color: 'white',
+              padding: '8px 18px',
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: '14px',
+              letterSpacing: '0.1em',
+              textDecoration: 'none',
+              borderRadius: '4px',
+              border: '1px solid rgba(255,255,255,0.2)',
+            }}
+          >
+            SOCIOS
+          </NavLink>
         </div>
+      </nav>
 
-        {/* Hamburger / Links Container */}
+      {/* Mobile nav — floating pill bottom */}
+      <nav
+        className="flex md:hidden"
+        style={{
+          position: 'fixed', bottom: '20px', left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 50,
+        }}
+      >
         <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          maxWidth: open ? '500px' : '40px',
-          opacity: open ? 1 : 0.8,
-          transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
-          overflow: 'hidden'
+          background: 'rgba(10,10,10,0.9)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255,255,255,0.12)',
+          borderRadius: '100px',
+          padding: '8px 16px',
+          display: 'flex', alignItems: 'center', gap: '6px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
         }}>
-          
-          {/* Links (only visible when expanded) */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '24px',
-            padding: '0 20px 0 10px',
-            whiteSpace: 'nowrap',
-            opacity: open ? 1 : 0,
-            transform: open ? 'translateX(0)' : 'translateX(-20px)',
-            transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-            transitionDelay: open ? '0.1s' : '0s'
-          }}>
-            {navLinks.map((link) => (
-              <a
-                key={link.path}
-                href={`#${link.path.replace('/', '') || 'hero'}`} // Anchor links for single page scroll
-                style={{
-                  fontFamily: 'var(--font-condensed)',
-                  fontWeight: 700,
-                  fontSize: '14px',
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
-                  color: link.accent ? '#F05A00' : 'white', // Reverting to orange accent
-                  textDecoration: 'none',
-                  transition: 'color 0.2s'
-                }}
-                onMouseEnter={e => e.currentTarget.style.color = '#F05A00'}
-                onMouseLeave={e => e.currentTarget.style.color = link.accent ? '#F05A00' : 'white'}
-                onClick={() => setOpen(false)}
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
+          <NavLink to="/" style={{ display: 'flex', alignItems: 'center', marginRight: '8px' }}>
+            <ShieldLogo />
+          </NavLink>
 
-          {/* Hamburger (only visible when collapsed) */}
-          {!open && (
+          {open ? (
+            <>
+              {navLinks.map(link => (
+                <NavLink
+                  key={link.path}
+                  to={link.path}
+                  style={({ isActive }) => ({
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontSize: '13px',
+                    letterSpacing: '0.08em',
+                    color: link.accent ? '#FFD700' : isActive ? '#FFD700' : 'rgba(255,255,255,0.8)',
+                    textDecoration: 'none',
+                    whiteSpace: 'nowrap',
+                    padding: '4px 6px',
+                  })}
+                  onClick={() => setOpen(false)}
+                >
+                  {link.label}
+                </NavLink>
+              ))}
+              <button
+                onClick={() => setOpen(false)}
+                style={{ color: 'rgba(255,255,255,0.5)', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', padding: '4px 8px' }}
+              >
+                ✕
+              </button>
+            </>
+          ) : (
             <button
               onClick={() => setOpen(true)}
-              aria-label="Menú"
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '5px',
-                padding: '10px',
-                cursor: 'pointer',
-                background: 'transparent',
-                border: 'none',
-                flexShrink: 0
-              }}
+              style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '4px', padding: '8px' }}
             >
-              <span style={{ display: 'block', width: '20px', height: '2px', background: 'white', borderRadius: '1px' }} />
-              <span style={{ display: 'block', width: '20px', height: '2px', background: 'white', borderRadius: '1px' }} />
+              <span style={{ display: 'block', width: '18px', height: '2px', background: 'white', borderRadius: '1px' }} />
+              <span style={{ display: 'block', width: '18px', height: '2px', background: 'white', borderRadius: '1px' }} />
+              <span style={{ display: 'block', width: '12px', height: '2px', background: '#FFD700', borderRadius: '1px' }} />
             </button>
           )}
         </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 };
 

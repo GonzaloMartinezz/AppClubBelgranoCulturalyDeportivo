@@ -1,0 +1,13 @@
+:root {
+  --club-primary: #003087;
+  --club-secondary: #FFFFFF;
+  --club-accent: #FFD700;
+  --club-dark: #0A0A0A;
+  --club-surface: #111827;
+  --club-border: #1F2937;
+  --club-text: #F9FAFB;
+  --club-muted: #6B7280;
+  --live-green: #10B981;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}

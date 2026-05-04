@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Remove-Item -Recurse -Force \"D:\\\\Dev\\\\REPOSITORIOS VSCODE \\(GITHUB PROYECTOS\\)\\\\PROYECTOS EN PROCESO\\\\AppClubBelgranoCulturalyDeportivo\\\\server\" -ErrorAction SilentlyContinue)",
+      "Bash(Write-Host \"Carpeta server eliminada\")"
+    ]
+  }
+}
