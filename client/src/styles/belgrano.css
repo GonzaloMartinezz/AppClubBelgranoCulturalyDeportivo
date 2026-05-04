@@ -8,6 +8,94 @@
   --club-text: #F9FAFB;
   --club-muted: #6B7280;
   --live-green: #10B981;
-  --font-display: 'Bebas Neue', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  --font-display: 'Teko', sans-serif;
+  --font-heading: 'Oswald', sans-serif;
+  --font-body: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 }
+
+/* Project-specific accents and helpers used by components */
+:root {
+  --color-accent: var(--club-primary);
+  --text-on-dark: rgba(255,255,255,0.95);
+}
+
+/* Basic helpers used by `NuestraFamilia` */
+#nuestra-familia {
+  background: var(--club-dark);
+  color: var(--club-text);
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+#nuestra-familia .bg-text {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: #ffffff;
+  opacity: 0.02;
+  line-height: 0.9;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
+/* Mobile tweaks to match iPhone 14 Pro Max viewport */
+@media (max-width: 430px) {
+  #nuestra-familia { padding-top: calc(16px + env(safe-area-inset-top)); padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+  #nuestra-familia .bg-text { font-size: 160px; transform: translateY(-6%); }
+  #nuestra-familia .section-inner { padding-left: 20px; padding-right: 20px; }
+  #nuestra-familia .image-area { height: 320px; }
+  #nuestra-familia .stats-item { padding: 18px 12px; }
+  #nuestra-familia .stats-value { font-size: 36px; }
+  #nuestra-familia h2 { font-family: var(--font-heading); font-size: 40px; }
+  #nuestra-familia p { font-size: 13px; }
+}
+
+/* Additional visual refinements */
+#nuestra-familia .inline-flex {
+  border-radius: 4px;
+}
+
+#nuestra-familia h2 {
+  font-family: var(--font-display);
+  margin: 0 0 6px 0;
+  line-height: 1;
+  font-size: clamp(28px, 6vw, 72px);
+}
+
+#nuestra-familia .section-inner {
+  box-sizing: border-box;
+}
+
+#nuestra-familia .image-area {
+  position: relative;
+  overflow: hidden;
+}
+
+#nuestra-familia .image-area::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.28));
+  pointer-events: none;
+}
+
+#nuestra-familia .stats-item { background: transparent; }
+
+#nuestra-familia .stats-value { color: var(--text-on-dark); }
+
+#nuestra-familia .inline-flex, #nuestra-familia .stats-item { transition: background .25s ease, transform .25s ease; }
+
+
+@media (min-width: 431px) and (max-width: 1024px) {
+  #nuestra-familia .bg-text { font-size: 240px; }
+}
+
+@media (min-width: 1025px) {
+  #nuestra-familia .bg-text { font-size: 380px; }
+}
+
+/* Accent corner lines */
+.accent-corner {
+  border-color: var(--color-accent) !important;
+}
+
