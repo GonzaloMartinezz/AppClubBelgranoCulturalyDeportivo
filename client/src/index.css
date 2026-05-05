@@ -24,6 +24,7 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-oswald: "Oswald", sans-serif;
   --font-teko: "Teko", sans-serif;
+  --font-display: "Barlow Condensed", sans-serif;
 
   /* ── Animations ── */
   --animate-marquee: marquee 25s linear infinite;

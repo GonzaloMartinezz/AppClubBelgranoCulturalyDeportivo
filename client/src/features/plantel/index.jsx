@@ -1,193 +1,119 @@
-import { useState, useEffect } from 'react';
-import api from '../../core/api/client';
-import { POSITIONS } from '../../app/constants';
-
-const CATEGORIES = [
-  { key: 'all', label: 'Plantel Principal' },
-  { key: 'juvenil', label: 'Juveniles' },
-  { key: 'staff', label: 'Cuerpo Técnico' },
-];
-
-const PlayerCard = ({ player, onClick }) => (
-  <button
-    onClick={() => onClick(player)}
-    style={{
-      background: '#111827', border: '1px solid rgba(255,255,255,0.06)',
-      borderRadius: '12px', overflow: 'hidden', cursor: 'pointer',
-      transition: 'all 0.25s', textAlign: 'left', padding: 0, width: '100%',
-    }}
-    onMouseEnter={e => { e.currentTarget.style.borderColor = '#003087'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
-    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-  >
-    <div style={{ background: '#003087', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-      <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '56px', color: 'rgba(255,255,255,0.15)', lineHeight: 1 }}>
-        {player.number ?? '—'}
-      </span>
-      {player.isCaptain && (
-        <div style={{ position: 'absolute', top: '8px', right: '8px', background: '#FFD700', color: '#000', fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', padding: '2px 8px', borderRadius: '4px' }}>
-          CAPITÁN
-        </div>
-      )}
-    </div>
-    <div style={{ padding: '16px' }}>
-      <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '18px', color: 'white', lineHeight: 1.1 }}>
-        {player.name} {player.lastName}
-      </p>
-      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#FFD700', marginTop: '4px', letterSpacing: '0.05em' }}>
-        {POSITIONS[player.position] || player.position}
-      </p>
-      {player.origin && (
-        <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '6px' }}>📍 {player.origin}</p>
-      )}
-    </div>
-  </button>
-);
-
-const PlayerModal = ({ player, onClose }) => {
-  if (!player) return null;
-  return (
-    <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
-      onClick={onClose}
-    >
-      <div
-        style={{ background: '#111827', borderRadius: '16px', padding: '48px', maxWidth: '480px', width: '100%', border: '1px solid rgba(255,255,255,0.1)' }}
-        onClick={e => e.stopPropagation()}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
-          <div>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#FFD700', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              {POSITIONS[player.position] || player.position}
-            </p>
-            <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '36px', color: 'white', lineHeight: 1, marginTop: '4px' }}>
-              {player.name} {player.lastName}
-            </h2>
-          </div>
-          <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '64px', color: 'rgba(255,255,255,0.1)', lineHeight: 0.8 }}>
-            #{player.number ?? '—'}
-          </span>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          {[
-            ['Posición', POSITIONS[player.position] || player.position],
-            ['Número', player.number ?? 'N/A'],
-            ['Procedencia', player.origin || 'Tucumán'],
-            ['Estado', player.status || 'Activo'],
-            ['PJ', player.careerStats?.matchesPlayed || 0],
-            ['PTS', player.careerStats?.points || 0],
-            ['REB', player.careerStats?.rebounds || 0],
-            ['AST', player.careerStats?.assists || 0],
-          ].map(([label, val]) => (
-            <div key={label} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '12px 16px' }}>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{label}</p>
-              <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '20px', color: 'white', marginTop: '2px' }}>{val}</p>
-            </div>
-          ))}
-        </div>
-        <button
-          onClick={onClose}
-          style={{ marginTop: '24px', width: '100%', background: '#003087', color: 'white', padding: '12px', fontFamily: "'Bebas Neue', sans-serif", fontSize: '14px', letterSpacing: '0.1em', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
-        >
-          CERRAR
-        </button>
-      </div>
-    </div>
-  );
-};
+import { useState } from 'react';
 
 const PlantelPage = () => {
-  const [players, setPlayers] = useState([]);
-  const [staff, setStaff] = useState([]);
-  const [tab, setTab] = useState('all');
-  const [selected, setSelected] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    Promise.all([
-      api.get('/players').catch(() => null),
-      api.get('/staff').catch(() => null),
-    ]).then(([pRes, sRes]) => {
-      setPlayers(pRes?.data?.data || []);
-      setStaff(sRes?.data?.data || []);
-    }).finally(() => setLoading(false));
-  }, []);
-
-  const principal = players.filter(p => !p.isJuvenil && !p.isU21);
-  const juveniles = players.filter(p => p.isJuvenil || p.isU21);
+  const players = [
+    { name: 'AMAYA, U.', pj: 7, minTot: 167.6, minPP: 23.9, ptsTot: 107, ptsPP: 15.3, tl: '13/17', tlPct: '76%', t2: '23/31', t2Pct: '74%', t3: '16/36', t3Pct: '44%', rd: 29 },
+    { name: 'ARAUJO, M.', pj: 8, minTot: 238.6, minPP: 29.8, ptsTot: 185, ptsPP: 23.1, tl: '38/57', tlPct: '66%', t2: '57/76', t2Pct: '75%', t3: '11/36', t3Pct: '30%', rd: 17 },
+    { name: 'ARMANDO, J.', pj: 4, minTot: 27.5, minPP: 6.9, ptsTot: 2, ptsPP: 0.5, tl: '0/2', tlPct: '0%', t2: '1/2', t2Pct: '50%', t3: '0/2', t3Pct: '0%', rd: 3 },
+    { name: 'BIESCHKE, S.', pj: 8, minTot: 174.2, minPP: 21.8, ptsTot: 74, ptsPP: 9.2, tl: '19/28', tlPct: '67%', t2: '23/35', t2Pct: '65%', t3: '3/7', t3Pct: '42%', rd: 33 },
+    { name: 'CASARES, B.', pj: 8, minTot: 125.8, minPP: 15.7, ptsTot: 44, ptsPP: 5.5, tl: '6/9', tlPct: '66%', t2: '10/20', t2Pct: '50%', t3: '6/20', t3Pct: '30%', rd: 8 },
+    { name: 'GARCIA, N.', pj: 8, minTot: 167.3, minPP: 20.9, ptsTot: 46, ptsPP: 5.8, tl: '6/10', tlPct: '60%', t2: '11/28', t2Pct: '39%', t3: '6/22', t3Pct: '27%', rd: 34 },
+    { name: 'GONZALEZ, M.', pj: 7, minTot: 103.8, minPP: 14.8, ptsTot: 27, ptsPP: 3.9, tl: '4/4', tlPct: '100%', t2: '7/14', t2Pct: '50%', t3: '3/20', t3Pct: '15%', rd: 6 },
+    { name: 'NIEVA, J.', pj: 5, minTot: 27.6, minPP: 5.5, ptsTot: 10, ptsPP: 2, tl: '0/0', tlPct: '0%', t2: '2/4', t2Pct: '50%', t3: '2/4', t3Pct: '50%', rd: 2 },
+    { name: 'ORTIZ, C.', pj: 8, minTot: 168.7, minPP: 21.1, ptsTot: 65, ptsPP: 8.1, tl: '6/8', tlPct: '75%', t2: '4/10', t2Pct: '40%', t3: '17/44', t3Pct: '38%', rd: 29 },
+    { name: 'PONCE, M.', pj: 3, minTot: 9.1, minPP: 3.0, ptsTot: 6, ptsPP: 2, tl: '0/0', tlPct: '0%', t2: '0/1', t2Pct: '0%', t3: '2/4', t3Pct: '50%', rd: 1 },
+    { name: 'RISSO, T.', pj: 2, minTot: 6.9, minPP: 3.4, ptsTot: 3, ptsPP: 1.5, tl: '0/0', tlPct: '0%', t2: '0/0', t2Pct: '0%', t3: '1/1', t3Pct: '100%', rd: 0 },
+    { name: 'RODRIGUEZ, N.', pj: 8, minTot: 232.9, minPP: 29.1, ptsTot: 116, ptsPP: 14.5, tl: '24/30', tlPct: '80%', t2: '22/32', t2Pct: '68%', t3: '16/42', t3Pct: '38%', rd: 46 },
+    { name: 'ROJAS, S.', pj: 8, minTot: 150.1, minPP: 18.8, ptsTot: 64, ptsPP: 8, tl: '4/8', tlPct: '50%', t2: '15/23', t2Pct: '65%', t3: '10/25', t3Pct: '40%', rd: 16 },
+  ];
 
   return (
-    <div style={{ background: '#0A0A0A', minHeight: '100vh', paddingTop: '80px' }}>
-      {/* Header */}
-      <div style={{ padding: '60px 24px 40px', borderBottom: '1px solid rgba(255,255,255,0.06)', maxWidth: '1200px', margin: '0 auto' }}>
-        <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '12px', letterSpacing: '0.3em', color: '#FFD700', marginBottom: '12px' }}>TEMPORADA 2025</p>
-        <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(3rem, 8vw, 6rem)', color: 'white', lineHeight: 0.85, letterSpacing: '-0.01em' }}>
-          NUESTRA<br />FAMILIA
-        </h1>
-      </div>
-
-      {/* Tabs */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
-        <div style={{ display: 'flex', gap: '4px', marginTop: '32px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0' }}>
-          {CATEGORIES.map(cat => (
-            <button
-              key={cat.key}
-              onClick={() => setTab(cat.key)}
-              style={{
-                fontFamily: "'Bebas Neue', sans-serif", fontSize: '15px', letterSpacing: '0.1em',
-                color: tab === cat.key ? 'white' : 'rgba(255,255,255,0.3)',
-                background: 'none', border: 'none', cursor: 'pointer',
-                padding: '12px 20px',
-                borderBottom: tab === cat.key ? '2px solid #FFD700' : '2px solid transparent',
-                transition: 'all 0.2s',
-              }}
-            >
-              {cat.label}
-            </button>
-          ))}
+    <div className="min-h-screen bg-[#0A0A0A] text-white font-display pt-32 pb-20 px-4 md:px-10">
+      <div className="max-w-[1400px] mx-auto">
+        
+        {/* Header */}
+        <div className="mb-12">
+          <p className="text-[#2962FF] text-xs font-black tracking-[0.4em] uppercase mb-4">
+            ESTADÍSTICAS INDIVIDUALES — TEMPORADA 2024/25
+          </p>
+          <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter uppercase leading-none">
+            PLANTEL Y<br/>RENDIMIENTO
+          </h1>
         </div>
-      </div>
 
-      {/* Content */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 24px 80px' }}>
-        {loading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
-            {[...Array(8)].map((_, i) => (
-              <div key={i} style={{ background: '#111827', borderRadius: '12px', height: '200px', animation: 'pulse 1.5s ease-in-out infinite' }} />
-            ))}
+        {/* Technical Stats Table */}
+        <div className="bg-white overflow-hidden shadow-2xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse font-bold uppercase tracking-tighter">
+              <thead>
+                {/* Grouped Header */}
+                <tr className="bg-[#1A1A1A] text-[#FFD700] text-[10px] tracking-widest border-b border-white/10">
+                  <th className="py-2 px-6"></th>
+                  <th className="py-2 px-4 text-center"></th>
+                  <th colSpan="2" className="py-2 px-4 text-center border-x border-white/5 bg-zinc-900">MINUTOS</th>
+                  <th colSpan="2" className="py-2 px-4 text-center border-x border-white/5 bg-[#001D4D]">PUNTOS</th>
+                  <th colSpan="3" className="py-2 px-4 text-center border-x border-white/5 bg-zinc-900">TIROS LIBRES</th>
+                  <th colSpan="3" className="py-2 px-4 text-center border-x border-white/5 bg-zinc-800">TIROS 2P</th>
+                  <th colSpan="3" className="py-2 px-4 text-center border-x border-white/5 bg-zinc-900">TIROS 3P</th>
+                  <th className="py-2 px-4 text-center"></th>
+                </tr>
+                {/* Detailed Header */}
+                <tr className="bg-black text-white text-[10px] uppercase tracking-widest">
+                  <th className="py-4 px-6">JUGADOR</th>
+                  <th className="py-4 px-4 text-center">PJ</th>
+                  <th className="py-4 px-4 text-center border-l border-white/5">TOT</th>
+                  <th className="py-4 px-4 text-center">PP</th>
+                  <th className="py-4 px-4 text-center bg-[#001D4D] border-x border-white/10">TOT</th>
+                  <th className="py-4 px-4 text-center bg-[#001D4D]">PP</th>
+                  <th className="py-4 px-4 text-center border-l border-white/5">A/I TOT</th>
+                  <th className="py-4 px-4 text-center">A/I PP</th>
+                  <th className="py-4 px-4 text-center">%</th>
+                  <th className="py-4 px-4 text-center border-l border-white/5">A/I TOT</th>
+                  <th className="py-4 px-4 text-center">A/I PP</th>
+                  <th className="py-4 px-4 text-center">%</th>
+                  <th className="py-4 px-4 text-center border-l border-white/5">A/I TOT</th>
+                  <th className="py-4 px-4 text-center">A/I PP</th>
+                  <th className="py-4 px-4 text-center">%</th>
+                  <th className="py-4 px-6 text-center">RD TOT</th>
+                </tr>
+              </thead>
+              <tbody className="text-black text-[12px]">
+                {players.map((row, i) => (
+                  <tr 
+                    key={i} 
+                    className={`
+                      border-b border-gray-200 transition-colors
+                      ${i % 2 === 0 ? 'bg-gray-50' : 'bg-white'}
+                      hover:bg-blue-50
+                    `}
+                  >
+                    <td className="py-3 px-6">
+                      <div className="flex items-center gap-3">
+                         <div className="w-8 h-8 bg-gray-200 rounded-full border border-gray-300 overflow-hidden shrink-0">
+                            <img src={`https://i.pravatar.cc/100?u=${row.name}`} alt="Player" className="w-full h-full object-cover grayscale" />
+                         </div>
+                         <span className="font-black text-gray-900 tracking-tighter whitespace-nowrap">{row.name}</span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-center text-gray-500">{row.pj}</td>
+                    <td className="py-3 px-4 text-center text-gray-500 font-teko text-lg border-l border-gray-100">{row.minTot}</td>
+                    <td className="py-3 px-4 text-center text-gray-500 font-teko text-lg">{row.minPP}</td>
+                    <td className="py-3 px-4 text-center bg-[#001D4D] text-[#FFD700] font-black text-lg border-x border-white/10">{row.ptsTot}</td>
+                    <td className="py-3 px-4 text-center bg-[#001D4D] text-[#FFD700] font-black text-lg">{row.ptsPP}</td>
+                    <td className="py-3 px-4 text-center text-gray-500 border-l border-gray-100">{row.tl}</td>
+                    <td className="py-3 px-4 text-center text-gray-400">1.9/2.4</td>
+                    <td className="py-3 px-4 text-center font-black text-blue-600">{row.tlPct}</td>
+                    <td className="py-3 px-4 text-center text-gray-500 border-l border-gray-100">{row.t2}</td>
+                    <td className="py-3 px-4 text-center text-gray-400">3.3/4.4</td>
+                    <td className="py-3 px-4 text-center font-black text-blue-600">{row.t2Pct}</td>
+                    <td className="py-3 px-4 text-center text-gray-500 border-l border-gray-100">{row.t3}</td>
+                    <td className="py-3 px-4 text-center text-gray-400">2.3/5.1</td>
+                    <td className="py-3 px-4 text-center font-black text-blue-600">{row.t3Pct}</td>
+                    <td className="py-3 px-6 text-center font-black text-gray-400">{row.rd}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ) : tab === 'staff' ? (
-          <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
-              {staff.map((s, i) => (
-                <div key={s._id || i} style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '24px' }}>
-                  <div style={{ width: '56px', height: '56px', background: '#003087', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-                    <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '20px', color: 'white' }}>
-                      {s.name[0]}{s.lastName[0]}
-                    </span>
-                  </div>
-                  <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '18px', color: 'white', lineHeight: 1.1 }}>{s.name} {s.lastName}</p>
-                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#FFD700', marginTop: '6px' }}>{s.roleDisplay}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
-              {(tab === 'all' ? principal : juveniles).map((p, i) => (
-                <PlayerCard key={p._id || i} player={p} onClick={setSelected} />
-              ))}
-            </div>
-            {tab === 'all' && principal.length === 0 && !loading && (
-              <p style={{ color: 'rgba(255,255,255,0.3)', textAlign: 'center', padding: '60px', fontFamily: 'Inter, sans-serif' }}>
-                No hay jugadores cargados. Ejecutá <code>npm run seed</code> en el servidor.
-              </p>
-            )}
-          </div>
-        )}
-      </div>
+        </div>
 
-      <PlayerModal player={selected} onClose={() => setSelected(null)} />
+        {/* Legend/Footer */}
+        <div className="mt-8 text-[9px] font-mono text-gray-600 uppercase tracking-widest flex justify-between">
+           <p>* ESTADÍSTICAS INDIVIDUALES PROCESADAS POR EL CENTRO DE ANÁLISIS BELGRANO</p>
+           <p>CONFERENCIA NORTE - LIGA FEDERAL</p>
+        </div>
+
+      </div>
     </div>
   );
 };

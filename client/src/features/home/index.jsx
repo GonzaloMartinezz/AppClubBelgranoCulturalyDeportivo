@@ -1,301 +1,203 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import api from '../../core/api/client';
-
-const ArrowRight = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const Countdown = ({ date }) => {
-  const [diff, setDiff] = useState(null);
-  useEffect(() => {
-    const tick = () => {
-      const ms = new Date(date) - Date.now();
-      if (ms <= 0) { setDiff(null); return; }
-      const d = Math.floor(ms / 86400000);
-      const h = Math.floor((ms % 86400000) / 3600000);
-      const m = Math.floor((ms % 3600000) / 60000);
-      const s = Math.floor((ms % 60000) / 1000);
-      setDiff({ d, h, m, s });
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, [date]);
-  if (!diff) return null;
-  return (
-    <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-      {[['d', diff.d], ['h', diff.h], ['m', diff.m], ['s', diff.s]].map(([l, v]) => (
-        <div key={l} style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '28px', color: '#FFD700', lineHeight: 1 }}>{String(v).padStart(2, '0')}</div>
-          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{l}</div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const SponsorMarquee = () => {
-  const sponsors = ['Liga Federal CAB', 'Municipalidad de SMT', 'Asociación Tucumana', 'BasketTuc', 'Sport Club', 'El Patriota 1906'];
-  return (
-    <div style={{ overflow: 'hidden', padding: '20px 0', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-      <div style={{
-        display: 'flex', gap: '80px', whiteSpace: 'nowrap',
-        animation: 'marquee 25s linear infinite', width: 'max-content',
-      }}>
-        {[...sponsors, ...sponsors].map((s, i) => (
-          <span key={i} style={{
-            fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: '14px', letterSpacing: '0.2em', textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.2)',
-          }}>
-            {s} ★
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-};
+import { useState, useEffect } from 'react';
 
 const HomePage = () => {
-  const [latestMatch, setLatestMatch] = useState(null);
-  const [nextMatch, setNextMatch] = useState(null);
-  const [upcomingMatches, setUpcomingMatches] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [timeLeft, setTimeLeft] = useState({ days: 3, hrs: 14, min: 45, sec: 0 });
 
   useEffect(() => {
-    Promise.all([
-      api.get('/matches/latest').catch(() => null),
-      api.get('/matches/next').catch(() => null),
-      api.get('/matches/upcoming?n=5').catch(() => null),
-    ]).then(([latest, next, upcoming]) => {
-      setLatestMatch(latest?.data?.data || {
-        homeTeamName: 'Belgrano CyD', awayTeamName: 'Bochas Sport Club',
-        score: { home: 81, away: 72 }, status: 'FINAL',
-        date: '2025-03-15', competitionName: 'Liga Federal 2025',
-        mvp: { playerName: 'Iván Albornoz', reason: '18 PTS, 12 REB' }
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev.sec > 0) return { ...prev, sec: prev.sec - 1 };
+        if (prev.min > 0) return { ...prev, min: prev.min - 1, sec: 59 };
+        if (prev.hrs > 0) return { ...prev, hrs: prev.hrs - 1, min: 59, sec: 59 };
+        if (prev.days > 0) return { ...prev, days: prev.days - 1, hrs: 23, min: 59, sec: 59 };
+        return prev;
       });
-      setNextMatch(next?.data?.data || {
-        homeTeamName: 'Belgrano CyD', awayTeamName: 'Por confirmar',
-        date: new Date(Date.now() + 7 * 86400000).toISOString(),
-        time: '21:00', venue: 'Estadio Julio César Figueroa',
-        competitionName: 'Liga Federal 2025'
-      });
-      setUpcomingMatches(upcoming?.data?.data || []);
-    }).finally(() => setLoading(false));
+    }, 1000);
+    return () => clearInterval(timer);
   }, []);
 
-  const isBelgranoHome = (m) => m?.homeTeamName?.toLowerCase().includes('belgrano');
-
   return (
-    <div style={{ background: '#0A0A0A', paddingTop: '64px' }}>
+    <div className="min-h-screen bg-black text-white font-display selection:bg-[#2962FF] pt-32 pb-20 px-4 md:px-10 lg:px-16">
 
-      {/* ── HERO ── */}
-      <section style={{ position: 'relative', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #001a4d 0%, #0A0A0A 60%, #0A0A0A 100%)' }} />
-        <div style={{ position: 'absolute', top: 0, right: 0, opacity: 0.04, pointerEvents: 'none', lineHeight: 0.8, overflow: 'hidden' }}>
-          <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'min(40vw, 400px)', fontWeight: 900, color: 'white' }}>1906</span>
-        </div>
-        <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', padding: '0 24px' }}>
-          <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '14px', letterSpacing: '0.35em', color: '#FFD700', marginBottom: '16px' }}>
-            LIGA FEDERAL 2025 — CONFERENCIA NORTE
-          </p>
-          <h1 style={{
-            fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: 'min(22vw, 180px)',
-            lineHeight: 0.85,
-            letterSpacing: '-0.02em',
-            color: 'white',
-          }}>
-            BELGRANO
-          </h1>
-          <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'min(8vw, 52px)', letterSpacing: '0.25em', color: 'rgba(255,255,255,0.3)', marginTop: '8px' }}>
-            EL PATRIOTA ★ 1906
-          </p>
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '40px', flexWrap: 'wrap' }}>
-            <Link to="/fixture" style={{
-              background: '#003087', color: 'white', padding: '14px 32px',
-              fontFamily: "'Bebas Neue', sans-serif", fontSize: '16px', letterSpacing: '0.12em',
-              textDecoration: 'none', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '8px',
-            }}>
-              VER FIXTURE <ArrowRight />
-            </Link>
-            <Link to="/plantel" style={{
-              background: 'transparent', color: 'white', padding: '14px 32px',
-              fontFamily: "'Bebas Neue', sans-serif", fontSize: '16px', letterSpacing: '0.12em',
-              textDecoration: 'none', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.2)',
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-            }}>
-              NUESTRO PLANTEL
-            </Link>
+      {/* Expansive Bento Grid Container */}
+      <div className="max-w-[1800px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8">
+
+        {/* 1. IDENTITY IN CEMENT - Main Hero Box (8 cols) */}
+        <div className="md:col-span-8 bg-[#0A0A0A] p-10 md:p-16 flex flex-col justify-between min-h-[550px] border border-white/5 hover:border-white/20 transition-colors group relative overflow-hidden">
+          {/* Subtle Background Branding */}
+          <div className="absolute top-0 right-0 text-[15rem] font-black italic text-white/2 leading-none translate-x-1/4 -translate-y-1/4 pointer-events-none uppercase">
+            BEL
           </div>
-        </div>
-        {/* Scroll indicator */}
-        <div style={{ position: 'absolute', bottom: '32px', left: '50%', transform: 'translateX(-50%)', opacity: 0.4 }}>
-          <div style={{ width: '1px', height: '60px', background: 'linear-gradient(to bottom, white, transparent)', margin: '0 auto' }} />
-        </div>
-      </section>
 
-      {/* ── SCOREBOARD + PRÓXIMO PARTIDO ── */}
-      <section style={{ padding: '80px 24px', background: '#0A0A0A' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-
-          {/* Último resultado */}
-          <div style={{
-            background: '#F5F5F0', borderRadius: '16px', padding: '48px',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            textAlign: 'center', position: 'relative', overflow: 'hidden', minHeight: '280px',
-          }}>
-            <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '11px', letterSpacing: '0.25em', color: '#999', marginBottom: '24px' }}>
-              {latestMatch?.date ? new Date(latestMatch.date).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase() : 'ÚLTIMO RESULTADO'}
+          <div className="relative z-10">
+            <h1 className="text-[clamp(4rem,10vw,7rem)] font-black italic leading-[0.8] tracking-tighter uppercase mb-8">
+              IDENTITY<br /><span className="text-[#2962FF]">IN CEMENT</span>
+            </h1>
+            <p className="max-w-lg text-gray-400 font-bold uppercase tracking-widest text-[11px] leading-relaxed mb-6">
+              We are built on the foundations of brutalist principles. Defense that feels like concrete, offense that strikes with architectural precision. Our game is not just played; it is constructed.
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', width: '100%', justifyContent: 'center' }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(3rem, 8vw, 6rem)', color: '#111', lineHeight: 0.9 }}>
-                  {loading ? '--' : latestMatch?.score?.home ?? '--'}
-                </div>
-                <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '11px', letterSpacing: '0.15em', color: '#888', marginTop: '4px' }}>
-                  {latestMatch?.homeTeamName || 'LOCAL'}
-                </p>
-              </div>
-              <div style={{ padding: '0 16px', borderLeft: '3px solid #003087', borderRight: '3px solid #003087' }}>
-                <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '20px', letterSpacing: '0.1em', color: '#003087' }}>FINAL</div>
-                <p style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>{latestMatch?.competitionName || 'Liga Federal'}</p>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(3rem, 8vw, 6rem)', color: '#111', lineHeight: 0.9 }}>
-                  {loading ? '--' : latestMatch?.score?.away ?? '--'}
-                </div>
-                <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '11px', letterSpacing: '0.15em', color: '#888', marginTop: '4px' }}>
-                  {latestMatch?.awayTeamName || 'VISITANTE'}
-                </p>
-              </div>
-            </div>
-            {latestMatch?.mvp?.playerName && (
-              <p style={{ marginTop: '24px', fontSize: '12px', color: '#666', fontFamily: 'Inter, sans-serif' }}>
-                MVP: <strong>{latestMatch.mvp.playerName}</strong> — {latestMatch.mvp.reason}
-              </p>
-            )}
+            <p className="max-w-lg text-gray-500 font-medium text-[11px] leading-relaxed">
+              Every possession is an opportunity to reinforce the structure of our legacy. We do not rely on flash, but on the undeniable weight of consistent, hard-nosed basketball.
+            </p>
           </div>
 
-          {/* Próximo partido */}
-          <div style={{
-            background: '#003087', borderRadius: '16px', padding: '48px',
-            display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-            minHeight: '280px', position: 'relative', overflow: 'hidden',
-          }}>
-            <div style={{ position: 'absolute', top: -20, right: -20, opacity: 0.08 }}>
-              <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '160px', lineHeight: 1 }}>🏀</span>
+          <div className="mt-12 pt-8 border-t border-white/10 flex items-end justify-between">
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-black text-[#2962FF] uppercase tracking-widest">DIVISION</span>
+              <span className="text-3xl font-black uppercase italic tracking-tighter">LIGA NACIONAL</span>
             </div>
-            <div>
-              <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '11px', letterSpacing: '0.25em', color: 'rgba(255,255,255,0.6)', marginBottom: '8px' }}>
-                PRÓXIMO PARTIDO
-              </p>
-              <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '13px', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.9)' }}>
-                {nextMatch?.date ? new Date(nextMatch.date).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase() : 'POR CONFIRMAR'}
-                {nextMatch?.time && ` — ${nextMatch.time}`}
-              </p>
-              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>
-                {nextMatch?.venue}
-              </p>
-            </div>
-            <div>
-              <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(2rem, 5vw, 3.5rem)', color: 'white', lineHeight: 0.9 }}>
-                VS {nextMatch?.awayTeamName || 'POR CONFIRMAR'}
-              </h3>
-              {nextMatch?.date && <Countdown date={nextMatch.date} />}
-            </div>
-            <Link to="/fixture" style={{ color: '#FFD700', display: 'inline-flex', alignItems: 'center', gap: '8px', fontFamily: "'Bebas Neue', sans-serif", fontSize: '14px', letterSpacing: '0.1em', textDecoration: 'none', marginTop: '16px' }}>
-              VER FIXTURE COMPLETO <ArrowRight />
-            </Link>
+            <button className="bg-white text-black px-8 py-4 font-black uppercase italic tracking-tighter text-xl hover:bg-[#2962FF] hover:text-white transition-all flex items-center gap-4">
+              VER ROSTER <span className="text-2xl">→</span>
+            </button>
           </div>
         </div>
-      </section>
 
-      {/* ── FIXTURE STRIP ── */}
-      {upcomingMatches.length > 0 && (
-        <section style={{ padding: '0 0 60px', background: '#0A0A0A' }}>
-          <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 24px' }}>
-            <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '11px', letterSpacing: '0.25em', color: 'rgba(255,255,255,0.3)', marginBottom: '16px' }}>
-              PRÓXIMAS FECHAS
-            </p>
-            <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
-              {upcomingMatches.map((m, i) => (
-                <div key={m._id || i} style={{
-                  flexShrink: 0, background: '#111827', border: '1px solid rgba(255,255,255,0.06)',
-                  borderRadius: '12px', padding: '16px 20px', minWidth: '160px', textAlign: 'center',
-                }}>
-                  <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '12px', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.4)' }}>
-                    {new Date(m.date).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }).toUpperCase()}
-                  </p>
-                  <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '15px', color: 'white', marginTop: '6px' }}>
-                    VS {m.isHome ? m.awayTeamName : m.homeTeamName}
-                  </p>
-                  <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '4px' }}>{m.time}</p>
+        {/* 2. TABLA DE POSICIONES (4 cols) */}
+        <div className="md:col-span-4 bg-[#0A0A0A] p-10 flex flex-col border border-white/5 hover:border-white/20 transition-colors">
+          <div className="flex justify-between items-start mb-12">
+            <h2 className="text-[#2962FF] text-4xl font-black uppercase leading-[0.9] italic tracking-tighter">
+              TABLA DE<br />POSICIONES
+            </h2>
+            <div className="w-10 h-10 border-2 border-white flex flex-col items-center justify-center gap-1.5">
+              <div className="w-5 h-[2px] bg-white"></div>
+              <div className="w-5 h-[2px] bg-white"></div>
+              <div className="w-5 h-[2px] bg-white"></div>
+            </div>
+          </div>
+
+          <div className="flex-1">
+            <table className="w-full text-left font-bold uppercase tracking-widest text-[11px]">
+              <thead>
+                <tr className="text-gray-600 border-b border-white/10">
+                  <th className="pb-6">POS</th>
+                  <th className="pb-6">TEAM</th>
+                  <th className="pb-6">GP</th>
+                  <th className="pb-6">W</th>
+                  <th className="pb-6">L</th>
+                  <th className="pb-6 text-[#2962FF]">PTS</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {[
+                  { p: 1, t: 'BELGRANO', g: 14, w: 11, l: 3, pts: 25, active: true },
+                  { p: 2, t: 'IACC', g: 14, w: 10, l: 4, pts: 24 },
+                  { p: 3, t: 'CAB', g: 14, w: 9, l: 5, pts: 23 },
+                  { p: 4, t: 'OVR', g: 14, w: 8, l: 6, pts: 22 },
+                  { p: 5, t: 'QSA', g: 14, w: 7, l: 7, pts: 21 },
+                ].map((row, i) => (
+                  <tr key={i} className={`hover:bg-white/5 transition-colors ${row.active ? 'bg-[#2962FF]/10' : ''}`}>
+                    <td className="py-6">{row.p}</td>
+                    <td className={`py-6 font-black ${row.active ? 'text-white' : 'text-gray-400'}`}>{row.t}</td>
+                    <td className="py-6 text-gray-500">{row.g}</td>
+                    <td className="py-6 text-gray-500">{row.w}</td>
+                    <td className="py-6 text-gray-500">{row.l}</td>
+                    <td className={`py-6 font-black ${row.active ? 'text-[#2962FF]' : 'text-gray-300'}`}>{row.pts}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* 3. ÚLTIMO RESULTADO (6 cols) */}
+        <div className="md:col-span-6 bg-[#0A0A0A] p-10 md:p-16 border border-white/5 hover:border-white/20 transition-colors">
+          <div className="flex justify-between items-center mb-16">
+            <h2 className="text-4xl font-black uppercase italic tracking-tighter">ÚLTIMO RESULTADO</h2>
+            <span className="bg-white text-black text-[11px] font-black px-3 py-1.5 uppercase tracking-widest">FINAL</span>
+          </div>
+
+          <div className="flex justify-between items-center mb-20 px-2 md:px-4">
+            <div className="flex flex-col">
+              <span className="text-2xl md:text-5xl font-black text-gray-600 mb-2">CAB</span>
+              <span className="text-7xl md:text-[10rem] font-black font-teko leading-none text-gray-400">84</span>
+            </div>
+            <div className="w-8 md:w-20 h-[2px] bg-gray-800"></div>
+            <div className="flex flex-col items-end">
+              <span className="text-2xl md:text-5xl font-black text-[#2962FF] mb-2">BEL</span>
+              <span className="text-7xl md:text-[10rem] font-black font-teko leading-none text-white">92</span>
+            </div>
+          </div>
+
+          <div className="pt-12 border-t border-white/10">
+            <span className="text-[11px] font-black text-gray-600 uppercase tracking-widest block mb-8">TEAM STATISTICS</span>
+            <div className="grid grid-cols-3 gap-8">
+              <div className="flex flex-col items-center border-r border-white/10">
+                <span className="text-[#2962FF] text-[11px] font-black uppercase mb-2">FG%</span>
+                <span className="text-5xl font-black font-teko">48.5</span>
+              </div>
+              <div className="flex flex-col items-center border-r border-white/10">
+                <span className="text-[#2962FF] text-[11px] font-black uppercase mb-2">REB</span>
+                <span className="text-5xl font-black font-teko">42</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-[#2962FF] text-[11px] font-black uppercase mb-2">AST</span>
+                <span className="text-5xl font-black font-teko">24</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-16 flex justify-between items-center text-[11px] font-black uppercase tracking-widest text-gray-600">
+            <span className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-[#2962FF] animate-pulse"></div>
+              OCT 24 / AWAY
+            </span>
+            <button className="hover:text-white transition-colors border-b border-white/10 pb-1">MATCH RECAP ↗</button>
+          </div>
+        </div>
+
+        {/* 4. PRÓXIMO PARTIDO (6 cols) */}
+        <div className="md:col-span-6 bg-[#2962FF] p-6 md:p-12 border-t border-white/10 flex flex-col justify-between overflow-hidden">
+          <div>
+            <div className="flex justify-between items-center mb-10 md:mb-12">
+              <h2 className="text-white text-2xl md:text-3xl font-black uppercase italic tracking-tighter">PRÓXIMO PARTIDO</h2>
+              <span className="bg-black text-white text-[9px] md:text-[10px] font-black px-2 py-1 uppercase tracking-widest">HOME</span>
+            </div>
+
+            <h3 className="text-8xl md:text-[10rem] font-black leading-[0.75] tracking-tighter uppercase mb-4">BEL</h3>
+            <h4 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter mb-8 md:mb-12">VS OBRAS</h4>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center text-[9px] md:text-[10px] font-black uppercase tracking-widest mb-4">
+              <span>BEL 8</span>
+              <span className="text-black/60 font-bold hidden sm:block">HEAD TO HEAD W-L</span>
+              <span>OVR 3</span>
+            </div>
+            <div className="h-3 md:h-4 bg-black w-full mb-8 md:mb-12 overflow-hidden flex">
+              <div className="h-full bg-white w-[75%]"></div>
+              <div className="h-full bg-black w-[25%]"></div>
+            </div>
+
+            <div className="grid grid-cols-4 bg-black p-4 md:p-6">
+              {[
+                { val: String(timeLeft.days).padStart(2, '0'), label: 'DAYS' },
+                { val: String(timeLeft.hrs).padStart(2, '0'), label: 'HRS' },
+                { val: String(timeLeft.min).padStart(2, '0'), label: 'MIN' },
+                { val: String(timeLeft.sec).padStart(2, '0'), label: 'SEC' },
+              ].map((unit, i) => (
+                <div key={i} className={`flex flex-col items-center ${i !== 3 ? 'border-r border-white/10' : ''}`}>
+                  <span className="text-[#2962FF] text-2xl md:text-3xl font-black font-teko">{unit.val}</span>
+                  <span className="text-[8px] md:text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">{unit.label}</span>
                 </div>
               ))}
             </div>
           </div>
-        </section>
-      )}
-
-      {/* ── DESDE 1906 ── */}
-      <section style={{ padding: '100px 24px', background: '#111827' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
-          <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '12px', letterSpacing: '0.3em', color: '#FFD700', marginBottom: '24px' }}>
-            IDENTIDAD · GARRA · HISTORIA
-          </p>
-          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(2.5rem, 7vw, 5rem)', color: 'white', lineHeight: 0.9, letterSpacing: '-0.01em' }}>
-            DESDE 1906,<br />SOMOS EL PATRIOTA
-          </h2>
-          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '18px', lineHeight: 1.7, color: 'rgba(255,255,255,0.5)', marginTop: '32px', maxWidth: '600px', margin: '32px auto 0' }}>
-            Más de un siglo de historia llevando el nombre de Belgrano a cada cancha de Argentina.
-            En la Liga Federal 2025, el Patriota sigue escribiendo su legado.
-          </p>
-          <div style={{ display: 'flex', gap: '40px', justifyContent: 'center', marginTop: '60px', flexWrap: 'wrap' }}>
-            {[['1906', 'Año de fundación'], ['Liga Federal', 'Competencia 2025'], ['El Patriota', 'Nuestro apodo'], ['Tucumán', 'Nuestra provincia']].map(([val, label]) => (
-              <div key={label} style={{ textAlign: 'center' }}>
-                <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '36px', color: '#FFD700', lineHeight: 1 }}>{val}</div>
-                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '4px' }}>{label}</div>
-              </div>
-            ))}
-          </div>
         </div>
-      </section>
 
-      {/* ── BLOCKS DIAGONAL ── */}
-      <section style={{ padding: '40px 0 80px', background: '#0A0A0A' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-          {[
-            { label: 'Nuestra Familia', sub: 'Plantel + Cuerpo Técnico 2025', link: '/plantel', align: 'left' },
-            { label: 'Photo Gallery', sub: 'Momentos únicos', link: '/galeria', align: 'right' },
-            { label: 'Tienda Oficial', sub: 'Indumentaria del club', link: '/tienda', align: 'left' },
-          ].map((block, i) => (
-            <Link key={i} to={block.link} style={{
-              display: 'block', width: block.align === 'right' ? '65%' : '65%',
-              marginLeft: block.align === 'right' ? 'auto' : 0,
-              background: '#003087', padding: '60px 48px',
-              textDecoration: 'none',
-              borderTop: '1px solid rgba(255,255,255,0.05)',
-            }}>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '8px' }}>
-                {block.sub}
-              </p>
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(2.5rem, 5vw, 4rem)', color: 'white', lineHeight: 0.9 }}>
-                {block.label}
-              </h2>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '20px', color: '#FFD700', fontFamily: "'Bebas Neue', sans-serif", fontSize: '14px', letterSpacing: '0.1em' }}>
-                VER MÁS <ArrowRight />
-              </div>
-            </Link>
+      </div>
+
+      {/* Simplified Footer for Bento Style */}
+      <footer className="max-w-7xl mx-auto mt-20 pt-10 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-8">
+        <div className="flex flex-col gap-2">
+          <span className="text-xl font-black uppercase italic tracking-tighter">BELGRANO</span>
+          <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">©2024 CLUB BELGRANO - BRUTALIST DIVISION</p>
+        </div>
+        <div className="flex gap-8 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
+          {['CONTACTO', 'SPONSORS', 'PRIVACIDAD', 'TÉRMINOS'].map(link => (
+            <span key={link} className="cursor-pointer hover:text-white transition-colors">{link}</span>
           ))}
         </div>
-      </section>
-
-      {/* ── SPONSORS ── */}
-      <SponsorMarquee />
+      </footer>
 
     </div>
   );
