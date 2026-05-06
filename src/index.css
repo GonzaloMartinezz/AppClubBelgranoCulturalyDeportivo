@@ -1,24 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  /* ── Brand ── */
+  /* ── Brand (Primary) ── */
   --color-brand: #1A4FD4;
-  --color-brand-light: #2E63E8;
+  --color-brand-light: #3561E8;
   --color-brand-dark: #0F2F80;
+
+  /* ── Accents ── */
   --color-accent: #F97316;
   --color-accent-2: #00D4FF;
 
-  /* ── Surfaces ── */
+  /* ── Dark Surfaces (Minimalista) ── */
   --color-dark: #0A0A0A;
-  --color-dark-2: #111111;
-  --color-surface: #171717;
-  --color-surface-2: #1F1F1F;
-  --color-surface-3: #262626;
+  --color-dark-2: #0F0F0F;
+  --color-surface: #141414;
+  --color-surface-2: #1A1A1A;
+  --color-surface-3: #242424;
 
-  /* ── Grays ── */
-  --color-muted: #A3A3A3;
-  --color-muted-2: #737373;
-  --color-muted-3: #404040;
+  /* ── Neutral Grays ── */
+  --color-muted: #989898;
+  --color-muted-2: #656565;
+  --color-muted-3: #3A3A3A;
 
   /* ── Typography ── */
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
