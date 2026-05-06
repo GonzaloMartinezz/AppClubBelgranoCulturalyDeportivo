@@ -1,164 +1,213 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Activity, BarChart3, List, LayoutGrid } from 'lucide-react';
+import { LayoutGrid, List, Trophy } from 'lucide-react';
+import { Card, Badge } from '../../components/atoms';
 
-const PlantelPage = () => {
-  const [view, setView] = useState('cards'); // 'cards' or 'table'
+const PlantelPageNew = () => {
+  const [view, setView] = useState('cards');
+  const [selectedPos, setSelectedPos] = useState('ALL');
+
   const players = [
-    { id: 1, name: 'AMAYA, U.', pj: 7, minTot: 167.6, minPP: 23.9, ptsTot: 107, ptsPP: 15.3, tl: '13/17', tlPct: '76%', t2: '23/31', t2Pct: '74%', t3: '16/36', t3Pct: '44%', rd: 29, pos: 'BASE' },
-    { id: 2, name: 'ARAUJO, M.', pj: 8, minTot: 238.6, minPP: 29.8, ptsTot: 185, ptsPP: 23.1, tl: '38/57', tlPct: '66%', t2: '57/76', t2Pct: '75%', t3: '11/36', t3Pct: '30%', rd: 17, pos: 'ESCOLTA' },
-    { id: 4, name: 'BIESCHKE, S.', pj: 8, minTot: 174.2, minPP: 21.8, ptsTot: 74, ptsPP: 9.2, tl: '19/28', tlPct: '67%', t2: '23/35', t2Pct: '65%', t3: '3/7', t3Pct: '42%', rd: 33, pos: 'PÍVOT' },
-    { id: 5, name: 'CASARES, B.', pj: 8, minTot: 125.8, minPP: 15.7, ptsTot: 44, ptsPP: 5.5, tl: '6/9', tlPct: '66%', t2: '10/20', t2Pct: '50%', t3: '6/20', t3Pct: '30%', rd: 8, pos: 'ALERO' },
-    { id: 6, name: 'GARCIA, N.', pj: 8, minTot: 167.3, minPP: 20.9, ptsTot: 46, ptsPP: 5.8, tl: '6/10', tlPct: '60%', t2: '11/28', t2Pct: '39%', t3: '6/22', t3Pct: '27%', rd: 34, pos: 'BASE' },
-    { id: 7, name: 'RODRIGUEZ, N.', pj: 8, minTot: 232.9, minPP: 29.1, ptsTot: 116, ptsPP: 14.5, tl: '24/30', tlPct: '80%', t2: '22/32', t2Pct: '68%', t3: '16/42', t3Pct: '38%', rd: 46, pos: 'ALA-PÍVOT' },
-    { id: 8, name: 'ROJAS, S.', pj: 8, minTot: 150.1, minPP: 18.8, ptsTot: 64, ptsPP: 8, tl: '4/8', tlPct: '50%', t2: '15/23', t2Pct: '65%', t3: '10/25', t3Pct: '40%', rd: 16, pos: 'ESCOLTA' },
+    { id: 1, name: 'AMAYA, U.', number: 5, pos: 'BASE', img: '/player-action.png', stats: { pts: 107, reb: 29, ast: 12 } },
+    { id: 2, name: 'ARAUJO, M.', number: 10, pos: 'ESCOLTA', img: '/player-action.png', stats: { pts: 185, reb: 17, ast: 8 } },
+    { id: 3, name: 'BIESCHKE, S.', number: 4, pos: 'PÍVOT', img: '/player-action.png', stats: { pts: 74, reb: 33, ast: 3 } },
+    { id: 4, name: 'CASARES, B.', number: 22, pos: 'ALERO', img: '/player-action.png', stats: { pts: 44, reb: 8, ast: 4 } },
+    { id: 5, name: 'GARCIA, N.', number: 7, pos: 'BASE', img: '/player-action.png', stats: { pts: 46, reb: 34, ast: 6 } },
+    { id: 6, name: 'RODRIGUEZ, N.', number: 12, pos: 'ALA-PÍVOT', img: '/player-action.png', stats: { pts: 116, reb: 46, ast: 5 } },
+    { id: 7, name: 'ROJAS, S.', number: 3, pos: 'ESCOLTA', img: '/player-action.png', stats: { pts: 64, reb: 16, ast: 7 } },
   ];
 
+  const positions = ['ALL', 'BASE', 'ESCOLTA', 'ALERO', 'ALA-PÍVOT', 'PÍVOT'];
+
+  const filtered = selectedPos === 'ALL'
+    ? players
+    : players.filter(p => p.pos === selectedPos);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.4 }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white pt-24 pb-20 overflow-hidden">
-      
-      {/* ── BACKGROUND ACCENT ── */}
-      <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-[#2962FF]/5 blur-[120px] rounded-full pointer-events-none -z-1" />
-      <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-[#2962FF]/3 blur-[120px] rounded-full pointer-events-none -z-1" />
+    <div className="w-full bg-dark min-h-screen">
+      {/* Background Accent */}
+      <div className="fixed top-0 right-0 w-96 h-96 bg-brand/5 blur-3xl pointer-events-none -z-10" />
 
-      <div className="app-container">
-        
-        {/* ── HEADER ── */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-20">
-          <div>
-            <motion.p 
-               initial={{ opacity: 0, x: -20 }}
-               animate={{ opacity: 1, x: 0 }}
-               className="text-[#2962FF] font-black tracking-[0.4em] text-[10px] uppercase mb-4"
-            >
-               TEMPORADA 2026 — ROSTER OFICIAL
-            </motion.p>
-            <motion.h1 
-               initial={{ opacity: 0, y: 20 }}
-               animate={{ opacity: 1, y: 0 }}
-               className="font-teko text-9xl font-bold italic uppercase leading-[0.8] tracking-tighter"
-            >
-               NUESTRO<br/>PLANTEL
-            </motion.h1>
+      <div className="app-container py-12 md:py-20">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-12 md:mb-16"
+        >
+          <span className="section-label mb-3 block">
+            <Trophy size={14} />
+            Temporada 2026
+          </span>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <h1 className="text-4xl md:text-5xl font-teko font-black uppercase tracking-tighter">
+              Nuestro Plantel
+            </h1>
+
+            {/* View Toggle */}
+            <div className="flex gap-2 bg-surface-2 p-1 rounded-sm w-fit">
+              <button
+                onClick={() => setView('cards')}
+                className={`flex items-center gap-2 px-4 py-2 font-oswald text-xs uppercase tracking-wider transition-all rounded-sm
+                  ${view === 'cards'
+                    ? 'bg-brand text-white'
+                    : 'text-muted hover:text-white'
+                  }`}
+              >
+                <LayoutGrid size={16} />
+                Grid
+              </button>
+              <button
+                onClick={() => setView('table')}
+                className={`flex items-center gap-2 px-4 py-2 font-oswald text-xs uppercase tracking-wider transition-all rounded-sm
+                  ${view === 'table'
+                    ? 'bg-brand text-white'
+                    : 'text-muted hover:text-white'
+                  }`}
+              >
+                <List size={16} />
+                Tabla
+              </button>
+            </div>
           </div>
+        </motion.div>
 
-          {/* View Toggle */}
-          <div className="flex bg-white/5 p-1 border border-white/10">
-            <button 
-               onClick={() => setView('cards')}
-               className={`flex items-center gap-2 px-6 py-2 font-teko text-xl uppercase transition-all ${view === 'cards' ? 'bg-[#2962FF] text-white' : 'text-white/40 hover:text-white'}`}
+        {/* Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-wrap gap-2 mb-12 md:mb-16"
+        >
+          {positions.map(pos => (
+            <button
+              key={pos}
+              onClick={() => setSelectedPos(pos)}
+              className={`px-4 py-2 font-oswald text-xs uppercase tracking-wider transition-all rounded-sm
+                ${selectedPos === pos
+                  ? 'bg-brand text-white'
+                  : 'bg-surface-2 text-muted hover:text-white'
+                }`}
             >
-               <LayoutGrid size={18} /> Galería
+              {pos === 'ALL' ? 'Todos' : pos}
             </button>
-            <button 
-               onClick={() => setView('table')}
-               className={`flex items-center gap-2 px-6 py-2 font-teko text-xl uppercase transition-all ${view === 'table' ? 'bg-[#2962FF] text-white' : 'text-white/40 hover:text-white'}`}
-            >
-               <List size={18} /> Datos
-            </button>
-          </div>
-        </div>
+          ))}
+        </motion.div>
 
+        {/* Cards View */}
         <AnimatePresence mode="wait">
           {view === 'cards' ? (
-            <motion.div 
-               key="cards"
-               initial={{ opacity: 0, y: 20 }}
-               animate={{ opacity: 1, y: 0 }}
-               exit={{ opacity: 0, y: -20 }}
-               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+            <motion.div
+              key="cards"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit={{ opacity: 0 }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6"
             >
-               {players.map((p, i) => (
-                  <motion.div
-                     key={p.id}
-                     initial={{ opacity: 0, scale: 0.9 }}
-                     animate={{ opacity: 1, scale: 1 }}
-                     transition={{ delay: i * 0.05 }}
-                     className="group relative bg-[#111] border border-white/10 overflow-hidden hover:border-[#2962FF] transition-all"
-                  >
-                     {/* Player Image Placeholder */}
-                     <div className="aspect-[4/5] bg-gradient-to-t from-black via-zinc-900 to-zinc-800 relative overflow-hidden">
-                        <User className="absolute bottom-[-20%] left-1/2 -translate-x-1/2 text-white/5 w-[150%] h-[150%]" />
-                        <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
-                        <img 
-                           src={`https://i.pravatar.cc/400?u=${p.name}`} 
-                           className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" 
-                           alt={p.name}
-                        />
-                        {/* Position Badge */}
-                        <div className="absolute top-4 left-4 bg-[#2962FF] px-3 py-1">
-                           <span className="font-teko text-lg font-bold italic tracking-wider">{p.pos}</span>
-                        </div>
-                     </div>
+              {filtered.map((player) => (
+                <motion.div
+                  key={player.id}
+                  variants={itemVariants}
+                >
+                  <Card hover className="overflow-hidden h-full flex flex-col">
+                    {/* Image */}
+                    <div className="relative aspect-[3/4] overflow-hidden bg-surface-2 mb-4">
+                      <img
+                        src={player.img}
+                        alt={player.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute top-3 right-3">
+                        <Badge variant="primary">{player.number}</Badge>
+                      </div>
+                    </div>
 
-                     {/* Info */}
-                     <div className="p-6">
-                        <h3 className="font-teko text-3xl font-bold uppercase mb-4 group-hover:text-[#2962FF] transition-colors">{p.name}</h3>
-                        <div className="grid grid-cols-3 gap-4 border-t border-white/5 pt-4">
-                           <div className="text-center">
-                              <p className="font-teko text-2xl font-bold">{p.ptsPP}</p>
-                              <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">PTS/P</p>
-                           </div>
-                           <div className="text-center">
-                              <p className="font-teko text-2xl font-bold">{p.minPP}</p>
-                              <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">MIN/P</p>
-                           </div>
-                           <div className="text-center">
-                              <p className="font-teko text-2xl font-bold">{p.rd}</p>
-                              <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">REB</p>
-                           </div>
+                    {/* Info */}
+                    <div className="flex-1">
+                      <h3 className="font-teko text-lg font-black uppercase mb-1">
+                        {player.name.split(',')[0]}
+                      </h3>
+                      <p className="text-xs font-oswald uppercase tracking-wider text-muted mb-3">
+                        {player.pos}
+                      </p>
+
+                      {/* Stats */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="bg-surface-2 p-2 rounded-sm text-center">
+                          <p className="text-xs font-teko font-black text-brand">{player.stats.pts}</p>
+                          <p className="text-[10px] text-muted uppercase">PTS</p>
                         </div>
-                     </div>
-                  </motion.div>
-               ))}
+                        <div className="bg-surface-2 p-2 rounded-sm text-center">
+                          <p className="text-xs font-teko font-black text-accent">{player.stats.reb}</p>
+                          <p className="text-[10px] text-muted uppercase">REB</p>
+                        </div>
+                        <div className="bg-surface-2 p-2 rounded-sm text-center">
+                          <p className="text-xs font-teko font-black text-accent-2">{player.stats.ast}</p>
+                          <p className="text-[10px] text-muted uppercase">AST</p>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
             </motion.div>
           ) : (
-            <motion.div 
-               key="table"
-               initial={{ opacity: 0, x: 20 }}
-               animate={{ opacity: 1, x: 0 }}
-               exit={{ opacity: 0, x: -20 }}
-               className="bg-[#111] border border-white/10 overflow-hidden"
+            <motion.div
+              key="table"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="overflow-x-auto"
             >
-               <div className="overflow-x-auto">
-                  <table className="w-full text-left font-display">
-                     <thead className="bg-white text-black text-[10px] font-black tracking-widest uppercase">
-                        <tr>
-                           <th className="p-6">JUGADOR</th>
-                           <th className="p-6 text-center">POS</th>
-                           <th className="p-6 text-center">PJ</th>
-                           <th className="p-6 text-center">PTS/P</th>
-                           <th className="p-6 text-center">MIN/P</th>
-                           <th className="p-6 text-center">%TL</th>
-                           <th className="p-6 text-center">%T2</th>
-                           <th className="p-6 text-center">%T3</th>
-                           <th className="p-6 text-center">REB</th>
-                        </tr>
-                     </thead>
-                     <tbody className="divide-y divide-white/5">
-                        {players.map(p => (
-                           <tr key={p.id} className="hover:bg-[#2962FF]/5 transition-colors group">
-                              <td className="p-6 font-teko text-2xl uppercase group-hover:text-[#2962FF]">{p.name}</td>
-                              <td className="p-6 text-center font-black text-[10px] text-white/40">{p.pos}</td>
-                              <td className="p-6 text-center font-teko text-2xl">{p.pj}</td>
-                              <td className="p-6 text-center font-teko text-2xl text-[#2962FF]">{p.ptsPP}</td>
-                              <td className="p-6 text-center font-teko text-2xl">{p.minPP}</td>
-                              <td className="p-6 text-center font-teko text-2xl text-white/40">{p.tlPct}</td>
-                              <td className="p-6 text-center font-teko text-2xl text-white/40">{p.t2Pct}</td>
-                              <td className="p-6 text-center font-teko text-2xl text-white/40">{p.t3Pct}</td>
-                              <td className="p-6 text-center font-teko text-2xl">{p.rd}</td>
-                           </tr>
-                        ))}
-                     </tbody>
-                  </table>
-               </div>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="px-4 py-3 text-left font-oswald text-xs uppercase tracking-wider text-muted">#</th>
+                    <th className="px-4 py-3 text-left font-oswald text-xs uppercase tracking-wider text-muted">Nombre</th>
+                    <th className="px-4 py-3 text-left font-oswald text-xs uppercase tracking-wider text-muted">Posición</th>
+                    <th className="px-4 py-3 text-center font-oswald text-xs uppercase tracking-wider text-muted">Pts</th>
+                    <th className="px-4 py-3 text-center font-oswald text-xs uppercase tracking-wider text-muted">Reb</th>
+                    <th className="px-4 py-3 text-center font-oswald text-xs uppercase tracking-wider text-muted">Ast</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(player => (
+                    <tr key={player.id} className="border-b border-white/5 hover:bg-surface-2/50 transition-colors">
+                      <td className="px-4 py-3 font-teko font-black text-brand">{player.number}</td>
+                      <td className="px-4 py-3 font-oswald uppercase text-white">{player.name}</td>
+                      <td className="px-4 py-3">
+                        <Badge variant="muted" className="text-xs">{player.pos}</Badge>
+                      </td>
+                      <td className="px-4 py-3 text-center font-teko text-accent font-black">{player.stats.pts}</td>
+                      <td className="px-4 py-3 text-center font-teko text-accent font-black">{player.stats.reb}</td>
+                      <td className="px-4 py-3 text-center font-teko text-accent-2 font-black">{player.stats.ast}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </motion.div>
           )}
         </AnimatePresence>
-
       </div>
     </div>
   );
 };
 
-export default PlantelPage;
+export default PlantelPageNew;
