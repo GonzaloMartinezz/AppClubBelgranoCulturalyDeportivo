@@ -2,6 +2,8 @@ export { default as Button } from './Button';
 export { default as Card } from './Card';
 export { default as Input } from './Input';
 export { default as Badge } from './Badge';
+export { default as PlayerCard } from './PlayerCard';
+export { default as MatchCardPro } from './MatchCardPro';
 
 // Avatar component
 export const Avatar = ({ src, alt, size = 'md', className = '' }) => {
