@@ -1,225 +1,261 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Trophy, Users, ShoppingBag, Calendar, ArrowDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { ArrowRight, Trophy, Users, Calendar } from 'lucide-react';
+import HeroCarousel from '../components/HeroCarousel';
+import { Button, Card } from '../components/atoms';
 import api from '../core/api/client';
 
-const HomePage = () => {
-  const [latestMatch, setLatestMatch] = useState(null);
+const HomePageNew = () => {
+  const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [heroIndex, setHeroIndex] = useState(0);
-  const heroRef = useRef(null);
-
-  const heroImages = [
-    '/hero-bg.png',
-    '/fans-crowd.png',
-  ];
-
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"]
-  });
-
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   useEffect(() => {
-    const heroTimer = setInterval(() => {
-      setHeroIndex(prev => (prev + 1) % heroImages.length);
-    }, 8000);
-    return () => clearInterval(heroTimer);
-  }, []);
-
-  useEffect(() => {
-    api.get('/matches/latest')
-      .then(r => setLatestMatch(r.data.data))
-      .catch(() => setLatestMatch({
-        homeTeam: { name: 'Belgrano' }, awayTeam: { name: 'Ateneo' },
-        homeScore: 85, awayScore: 72, status: 'FINAL',
-        date: '2026-04-27',
-        competition: { name: 'Liga Federal' },
-      }))
+    api.get('/matches/upcoming?limit=3')
+      .then(r => setMatches(r.data.data || []))
+      .catch(() => setMatches([
+        {
+          id: 1,
+          homeTeam: { name: 'Belgrano', logo: '/club-logo.png' },
+          awayTeam: { name: 'Ateneo' },
+          date: '2026-05-10',
+          time: '21:00',
+          venue: 'Polideportivo Belgrano'
+        },
+        {
+          id: 2,
+          homeTeam: { name: 'Belgrano' },
+          awayTeam: { name: 'Rivadavia' },
+          date: '2026-05-17',
+          time: '21:00',
+          venue: 'Polideportivo Belgrano'
+        },
+        {
+          id: 3,
+          homeTeam: { name: 'Belgrano' },
+          awayTeam: { name: 'Olimpo' },
+          date: '2026-05-24',
+          time: '21:00',
+          venue: 'Polideportivo Belgrano'
+        }
+      ]))
       .finally(() => setLoading(false));
   }, []);
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.2, delayChildren: 0.3 }
+    }
   };
 
   const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { duration: 0.8, ease: [0.2, 0.8, 0.2, 1] } }
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }
+    }
   };
 
   return (
-    <div className="w-full bg-[#0A0A0A]">
-      
-      {/* ── PARALLAX HERO ── */}
-      <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden">
-        <motion.div style={{ y }} className="absolute inset-0 z-0">
-          <AnimatePresence mode="wait">
-            <motion.img
-              key={heroIndex}
-              src={heroImages[heroIndex]}
-              className="w-full h-full object-cover opacity-40 grayscale-[0.5]"
-              initial={{ opacity: 0, scale: 1.1 }}
-              animate={{ opacity: 0.4, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1.5 }}
-            />
-          </AnimatePresence>
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-[#0A0A0A]" />
-        </motion.div>
+    <div className="w-full bg-dark">
+      {/* Hero Section */}
+      <HeroCarousel />
 
-        <motion.div 
-          style={{ opacity }}
-          className="relative z-10 text-center px-4"
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-        >
-          <motion.p variants={itemVariants} className="text-[#2962FF] font-black tracking-[0.5em] text-[10px] uppercase mb-6 flex items-center justify-center gap-4">
-             <span className="w-12 h-[1px] bg-[#2962FF]/30"></span>
-             LIGA FEDERAL — TEMPORADA 2026
-             <span className="w-12 h-[1px] bg-[#2962FF]/30"></span>
-          </motion.p>
-          <motion.h1 
-            variants={itemVariants}
-            className="font-teko font-bold italic text-[15vw] md:text-[12vw] leading-[0.75] uppercase text-white tracking-tighter"
+      {/* Welcome Section */}
+      <section className="relative py-16 md:py-24 bg-gradient-to-b from-dark to-surface">
+        <div className="app-container max-w-5xl">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="text-center"
           >
-            CLUB<br/>BELGRANO
-          </motion.h1>
-          <motion.div variants={itemVariants} className="mt-12 flex flex-col md:flex-row items-center justify-center gap-6">
-             <button className="btn-brutal group">
-                Hacerse Socio <ArrowRight className="inline ml-2 group-hover:translate-x-1 transition-transform" size={20} />
-             </button>
-             <button className="btn-brutal-outline">
-                Ver Fixture
-             </button>
-          </motion.div>
-        </motion.div>
-
-        <motion.div 
-          animate={{ y: [0, 10, 0] }} 
-          transition={{ repeat: Infinity, duration: 2 }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/30"
-        >
-          <ArrowDown size={32} />
-        </motion.div>
-      </section>
-
-      {/* ── DATA TICKER ── */}
-      <div className="w-full bg-white text-black py-4 overflow-hidden border-y-2 border-black flex items-center">
-         <motion.div 
-           animate={{ x: [0, -1000] }} 
-           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-           className="flex gap-12 whitespace-nowrap font-teko text-3xl font-bold italic uppercase"
-         >
-            {Array(10).fill("EL GIGANTE DE TUCUMÁN — CLUB BELGRANO CULTURA Y DEPORTIVO — 1920 —").map((t, i) => (
-              <span key={i}>{t}</span>
-            ))}
-         </motion.div>
-      </div>
-
-      {/* ── BENTO GRID FEATURES ── */}
-      <section className="py-24 px-4 md:px-10 max-w-[1400px] mx-auto">
-         <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4 h-auto md:h-[600px]">
-            
-            {/* Featured Match Card */}
-            <motion.div 
-               whileHover={{ scale: 0.98 }}
-               className="md:col-span-2 md:row-span-2 bg-[#111] border border-white/10 p-10 flex flex-col justify-between relative group overflow-hidden"
-            >
-               <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <Trophy size={200} />
-               </div>
-               <div>
-                  <p className="text-[#2962FF] font-black text-[10px] tracking-widest uppercase mb-2">ÚLTIMO RESULTADO</p>
-                  <h3 className="font-teko text-6xl font-bold uppercase leading-none mb-6">GRAN VICTORIA<br/>EN EL GIGANTE</h3>
-               </div>
-               <div className="flex items-center gap-8">
-                  <div className="text-center">
-                     <p className="font-teko text-7xl font-bold">{latestMatch?.homeScore}</p>
-                     <p className="text-[10px] font-black uppercase text-white/40">BELGRANO</p>
-                  </div>
-                  <div className="h-12 w-px bg-white/10"></div>
-                  <div className="text-center">
-                     <p className="font-teko text-7xl font-bold">{latestMatch?.awayScore}</p>
-                     <p className="text-[10px] font-black uppercase text-white/40">{latestMatch?.awayTeam?.name}</p>
-                  </div>
-               </div>
-               <button className="flex items-center gap-2 font-black text-[10px] tracking-widest uppercase mt-12 hover:text-[#2962FF] transition-colors">
-                  VER RESUMEN DEL PARTIDO <ArrowRight size={14} />
-               </button>
+            <motion.div variants={itemVariants} className="mb-6">
+              <span className="section-label">
+                <Trophy size={14} />
+                Bienvenido
+              </span>
             </motion.div>
 
-            {/* Quick Link Cards */}
-            <motion.a href="/plantel" whileHover={{ y: -5 }} className="bg-[#171717] border border-white/10 p-8 flex flex-col justify-between group">
-               <Users className="text-[#2962FF] group-hover:scale-110 transition-transform" size={32} />
-               <div>
-                  <h4 className="font-teko text-3xl font-bold uppercase">PLANTEL</h4>
-                  <p className="text-[10px] font-black text-white/30 uppercase mt-1">CONOCÉ A NUESTROS GUERREROS</p>
-               </div>
-            </motion.a>
+            <motion.h2
+              variants={itemVariants}
+              className="text-4xl md:text-5xl font-teko font-black uppercase mb-4"
+            >
+              Club Belgrano Cultural y Deportivo
+            </motion.h2>
 
-            <motion.a href="/tienda" whileHover={{ y: -5 }} className="bg-[#171717] border border-white/10 p-8 flex flex-col justify-between group">
-               <ShoppingBag className="text-[#2962FF] group-hover:scale-110 transition-transform" size={32} />
-               <div>
-                  <h4 className="font-teko text-3xl font-bold uppercase">TIENDA</h4>
-                  <p className="text-[10px] font-black text-white/30 uppercase mt-1">EQUIPACIÓN OFICIAL 2025</p>
-               </div>
-            </motion.a>
+            <motion.p
+              variants={itemVariants}
+              className="text-base md:text-lg text-muted mb-8 max-w-2xl mx-auto"
+            >
+              Desde 1920 llevando la pasión por el básquet a cada rincón de Tucumán.
+              Únete a nuestra comunidad y sé parte de la historia.
+            </motion.p>
 
-            <motion.a href="/fixture" whileHover={{ y: -5 }} className="md:col-span-2 bg-[#2962FF] p-8 flex flex-col justify-between group">
-               <Calendar className="text-white group-hover:rotate-12 transition-transform" size={32} />
-               <div className="flex justify-between items-end">
-                  <div>
-                     <h4 className="font-teko text-4xl font-bold uppercase">PRÓXIMOS ENCUENTROS</h4>
-                     <p className="text-[10px] font-black text-white/60 uppercase mt-1">NO TE PIERDAS NINGÚN PARTIDO</p>
-                  </div>
-                  <ArrowRight size={24} />
-               </div>
-            </motion.a>
-
-         </div>
+            <motion.div
+              variants={itemVariants}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+            >
+              <Button variant="primary">
+                Únete al Club
+                <ArrowRight size={18} className="ml-2" />
+              </Button>
+              <Button variant="secondary">
+                Ver Fixture
+              </Button>
+            </motion.div>
+          </motion.div>
+        </div>
       </section>
 
-      {/* ── IMAGE SECTION ── */}
-      <section className="relative py-24 overflow-hidden">
-         <div className="app-container">
-            <div className="relative aspect-[21/9] w-full overflow-hidden">
-               <motion.img 
-                  initial={{ scale: 1.2 }}
-                  whileInView={{ scale: 1 }}
-                  transition={{ duration: 1.5 }}
-                  src="/fans-crowd.png" 
-                  className="w-full h-full object-cover"
-               />
-               <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                  <div className="text-center">
-                     <h2 className="font-teko text-7xl md:text-9xl font-bold italic uppercase leading-none mb-4">MÁS QUE<br/>UN CLUB</h2>
-                     <p className="font-oswald text-xs md:text-sm tracking-[0.4em] uppercase text-[#2962FF] font-bold">UNA PASIÓN QUE NO SE DETIENE</p>
-                  </div>
-               </div>
+      {/* Upcoming Matches */}
+      <section className="py-16 md:py-24 bg-dark">
+        <div className="app-container">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <motion.div variants={itemVariants} className="mb-12">
+              <span className="section-label mb-3 block">
+                <Calendar size={14} />
+                Próximos Partidos
+              </span>
+              <h2 className="text-3xl md:text-4xl font-teko font-black uppercase">
+                Fixture de la Temporada
+              </h2>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {matches.map((match, idx) => (
+                <motion.div
+                  key={match.id}
+                  variants={itemVariants}
+                  custom={idx}
+                  transition={{ delay: idx * 0.1 }}
+                >
+                  <Card hover className="h-full flex flex-col justify-between">
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <span className="text-xs font-oswald uppercase tracking-wider text-muted">
+                          {new Date(match.date).toLocaleDateString('es-AR', {
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </span>
+                        <span className="text-xs font-oswald uppercase tracking-wider text-muted">
+                          {match.time}
+                        </span>
+                      </div>
+
+                      <div className="mb-4">
+                        <h3 className="font-teko text-xl uppercase mb-2">
+                          {match.homeTeam.name}
+                        </h3>
+                        <p className="text-sm text-muted mb-3">
+                          vs {match.awayTeam.name}
+                        </p>
+                        <p className="text-xs text-muted">
+                          {match.venue}
+                        </p>
+                      </div>
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      className="w-full text-xs"
+                    >
+                      Ver Detalles
+                    </Button>
+                  </Card>
+                </motion.div>
+              ))}
             </div>
-         </div>
+
+            <motion.div
+              variants={itemVariants}
+              className="mt-12 text-center"
+            >
+              <Button variant="primary">
+                Ver Fixture Completa
+              </Button>
+            </motion.div>
+          </motion.div>
+        </div>
       </section>
 
-      {/* ── CALL TO ACTION ── */}
-      <section className="py-32 bg-[#050505] border-t border-white/5">
-         <div className="app-container text-center">
-            <h2 className="font-teko text-6xl md:text-9xl font-bold italic uppercase tracking-tighter mb-8">
-               ÚNETE A LA<br/><span className="text-[#2962FF]">FAMILIA</span>
-            </h2>
-            <div className="flex flex-col md:flex-row gap-6 justify-center mt-12">
-               <button className="btn-brutal px-16">REGISTRARSE</button>
-               <button className="btn-brutal-outline px-16">INFO ABONOS</button>
+      {/* Stats Section */}
+      <section className="py-16 md:py-24 bg-surface">
+        <div className="app-container">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+          >
+            {[
+              { icon: Trophy, label: 'Títulos', value: '12' },
+              { icon: Users, label: 'Socios', value: '500+' },
+              { icon: Calendar, label: 'Partidos', value: '20' }
+            ].map(({ icon: Icon, label, value }, idx) => (
+              <motion.div
+                key={label}
+                variants={itemVariants}
+                className="text-center"
+              >
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand/10 mb-4">
+                  <Icon className="text-brand" size={32} />
+                </div>
+                <p className="text-sm text-muted uppercase tracking-wider mb-2">{label}</p>
+                <p className="text-4xl font-teko font-black text-white">{value}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Gallery Preview */}
+      <section className="py-16 md:py-24 bg-dark">
+        <div className="app-container">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <motion.div variants={itemVariants} className="mb-12">
+              <h2 className="text-3xl md:text-4xl font-teko font-black uppercase">
+                Galería
+              </h2>
+              <p className="text-muted mt-2">Momentos que perduran en la memoria</p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {['/hero-bg.png', '/team-photo.png', '/gallery-stadium.png'].map((img, idx) => (
+                <motion.div
+                  key={idx}
+                  variants={itemVariants}
+                  className="group relative aspect-video rounded-sm overflow-hidden"
+                >
+                  <img
+                    src={img}
+                    alt={`Gallery ${idx + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-brand/0 group-hover:bg-brand/30 transition-colors duration-300" />
+                </motion.div>
+              ))}
             </div>
-         </div>
+          </motion.div>
+        </div>
       </section>
-
     </div>
   );
 };
 
-export default HomePage;
+export default HomePageNew;
