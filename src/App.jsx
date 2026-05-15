@@ -1,8 +1,8 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from './components/layout/NavbarNew';
-import FooterPro from './components/layout/FooterPro';
-import HomePagePro from './pages/HomePagePro';
+import Footer from './components/layout/FooterNew';
+import HomePage from './pages/HomePage';
 import PlantelPage from './features/plantel/index';
 import FixturePage from './pages/FixturePage';
 import LiveMatchPage from './features/liveMatch/index';
@@ -31,7 +31,7 @@ function App() {
             transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
           >
             <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<HomePagePro />} />
+              <Route path="/" element={<HomePage />} />
               <Route path="/plantel" element={<PlantelPage />} />
               <Route path="/fixture" element={<FixturePage />} />
               <Route path="/live/:id" element={<LiveMatchPage />} />
@@ -46,7 +46,7 @@ function App() {
       </main>
 
       {/* Footer */}
-      <FooterPro />
+      <Footer />
     </div>
   );
 }
