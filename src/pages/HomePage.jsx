@@ -1,472 +1,399 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Trophy, Users, Calendar, Play } from 'lucide-react';
-import { Button, Card } from '../components/atoms';
-import api from '../core/api/client';
+import { Plus, TrendingUp, DollarSign, Briefcase } from 'lucide-react';
 
 const HomePage = () => {
-  const [matches, setMatches] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [sales, setSales] = useState(() => {
+    const saved = localStorage.getItem('sales');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    project: '',
+    type: 'app',
+    price: '',
+    date: new Date().toISOString().split('T')[0],
+    status: 'completed',
+    description: ''
+  });
 
   useEffect(() => {
-    api.get('/matches/upcoming?limit=6')
-      .then(r => setMatches(r.data.data || []))
-      .catch(() => setMatches([
-        { id: 1, homeTeam: { name: 'Belgrano' }, awayTeam: { name: 'Ateneo' }, date: '2026-05-20', time: '21:00', venue: 'Polideportivo' },
-        { id: 2, homeTeam: { name: 'Belgrano' }, awayTeam: { name: 'Rivadavia' }, date: '2026-05-27', time: '21:00', venue: 'Polideportivo' },
-        { id: 3, homeTeam: { name: 'Belgrano' }, awayTeam: { name: 'Olimpo' }, date: '2026-06-03', time: '21:00', venue: 'Polideportivo' },
-        { id: 4, homeTeam: { name: 'Belgrano' }, awayTeam: { name: 'Alumni' }, date: '2026-06-10', time: '21:00', venue: 'Polideportivo' },
-        { id: 5, homeTeam: { name: 'Belgrano' }, awayTeam: { name: 'San Martín' }, date: '2026-06-17', time: '21:00', venue: 'Polideportivo' },
-        { id: 6, homeTeam: { name: 'Belgrano' }, awayTeam: { name: 'Junín' }, date: '2026-06-24', time: '21:00', venue: 'Polideportivo' },
-      ]))
-      .finally(() => setLoading(false));
-  }, []);
+    localStorage.setItem('sales', JSON.stringify(sales));
+  }, [sales]);
+
+  const stats = {
+    totalSales: sales.filter(s => s.status === 'completed').length,
+    totalBudgets: sales.filter(s => s.type === 'presupuesto').length,
+    totalApps: sales.filter(s => s.type === 'app').length,
+    totalEarnings: sales
+      .filter(s => s.status === 'completed')
+      .reduce((sum, s) => sum + (parseFloat(s.price) || 0), 0),
+    pendingBudgets: sales.filter(s => s.status === 'pendiente').length
+  };
+
+  const handleAddSale = (e) => {
+    e.preventDefault();
+    if (!formData.project || !formData.price) return;
+
+    setSales([...sales, {
+      id: Date.now(),
+      ...formData,
+      price: parseFloat(formData.price)
+    }]);
+
+    setFormData({
+      project: '',
+      type: 'app',
+      price: '',
+      date: new Date().toISOString().split('T')[0],
+      status: 'completed',
+      description: ''
+    });
+    setShowForm(false);
+  };
+
+  const handleDelete = (id) => {
+    setSales(sales.filter(s => s.id !== id));
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.15, delayChildren: 0.2 } }
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.2 }
+    }
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.2, 0.8, 0.2, 1] } }
-  };
-
-  const imageVariants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.8 } }
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 }
+    }
   };
 
   return (
-    <div className="w-full bg-dark overflow-x-hidden">
-      {/* Hero Full Section with Image 4.webp */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden mt-16 md:mt-0">
-        <motion.div
-          className="absolute inset-0 z-0"
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 1.2 }}
-        >
-          <img
-            src="/4.webp"
-            alt="Club Belgrano Hero"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-        </motion.div>
-
-        <motion.div
-          className="relative z-10 app-container text-center max-w-3xl mx-auto px-4"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.div variants={itemVariants} className="mb-8">
-            <span className="section-label">
-              <Trophy size={16} />
-              Desde 1920
-            </span>
-          </motion.div>
-
-          <motion.h1
-            variants={itemVariants}
-            className="text-5xl md:text-7xl font-teko font-black uppercase mb-6 text-white leading-tight"
-          >
-            Club Belgrano<br />Cultural y Deportivo
-          </motion.h1>
-
-          <motion.p
-            variants={itemVariants}
-            className="text-lg md:text-xl text-white/90 mb-10 max-w-2xl mx-auto"
-          >
-            La pasión por el básquet llevada a cada rincón de Tucumán. Somos historia, somos tradición, somos comunidad.
-          </motion.p>
-
-          <motion.div
-            variants={itemVariants}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-          >
-            <Button variant="primary" className="text-lg">
-              Únete al Club
-              <ArrowRight size={20} className="ml-2" />
-            </Button>
-            <Button variant="secondary" className="text-lg">
-              Ver Fixture
-            </Button>
-          </motion.div>
-        </motion.div>
-
-        <motion.div
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10"
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <div className="text-white/60">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-            </svg>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-20 md:py-28 bg-dark">
-        <div className="app-container">
+    <div className="w-full bg-dark min-h-screen pt-20 md:pt-24">
+      {/* Hero Section */}
+      <section className="py-12 md:py-16 bg-gradient-to-b from-dark to-surface">
+        <div className="app-container max-w-4xl">
           <motion.div
             variants={containerVariants}
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12"
-          >
-            {[
-              { icon: Trophy, label: 'Títulos', value: '12', color: 'from-brand to-brand-light' },
-              { icon: Users, label: 'Socios', value: '500+', color: 'from-accent to-accent-2' },
-              { icon: Calendar, label: 'Partidos', value: '20', color: 'from-purple-600 to-pink-600' }
-            ].map(({ icon: Icon, label, value, color }, idx) => (
-              <motion.div
-                key={label}
-                variants={itemVariants}
-                className={`bg-gradient-to-br ${color} p-8 md:p-12 rounded-lg text-center group hover:shadow-2xl transition-all duration-300`}
-              >
-                <Icon className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 text-white/80 group-hover:scale-110 transition-transform" />
-                <p className="text-sm md:text-base font-oswald font-bold uppercase tracking-wider text-white/80 mb-2">{label}</p>
-                <p className="text-4xl md:text-5xl font-teko font-black text-white">{value}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Image Section 7.webp with Content */}
-      <section className="relative py-20 md:py-32 overflow-hidden">
-        <motion.div
-          className="absolute inset-0 z-0"
-          variants={imageVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          <img
-            src="/7.webp"
-            alt="Club Belgrano Moments"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/80" />
-        </motion.div>
-
-        <div className="relative z-10 app-container max-w-3xl">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-          >
-            <motion.div variants={itemVariants} className="mb-6">
-              <span className="section-label text-white/90">
-                <Play size={14} />
-                Nuestra Misión
-              </span>
-            </motion.div>
-
-            <motion.h2
-              variants={itemVariants}
-              className="text-4xl md:text-5xl font-teko font-black uppercase mb-6 text-white"
-            >
-              Conectar. Competir. Crecer.
-            </motion.h2>
-
-            <motion.p
-              variants={itemVariants}
-              className="text-lg text-white/80 mb-6 leading-relaxed"
-            >
-              Desde nuestros inicios en 1920, hemos forjado una comunidad que trasciende el deporte. El Club Belgrano es el corazón pulsante del básquet tucumano, donde cada jugador, cada socio, cada aficionado es parte de una familia unida por la pasión.
-            </motion.p>
-
-            <motion.p
-              variants={itemVariants}
-              className="text-base text-white/70 mb-8 leading-relaxed"
-            >
-              Nuestro compromiso es desarrollar talento, fortalecer valores y ser un espacio de pertenencia donde la excelencia deportiva va de la mano con la responsabilidad social.
-            </motion.p>
-
-            <motion.div variants={itemVariants}>
-              <Button variant="primary" className="text-base">
-                Conoce más sobre nosotros
-                <ArrowRight size={18} className="ml-2" />
-              </Button>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Upcoming Matches Section */}
-      <section className="py-20 md:py-28 bg-surface">
-        <div className="app-container">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-          >
-            <motion.div variants={itemVariants} className="mb-12">
-              <span className="section-label mb-3 block">
-                <Calendar size={16} />
-                Próximos Compromisos
-              </span>
-              <h2 className="text-4xl md:text-5xl font-teko font-black uppercase">
-                Fixture de Temporada
-              </h2>
-              <p className="text-muted mt-3">Todos los partidos programados</p>
-            </motion.div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {matches.slice(0, 6).map((match, idx) => (
-                <motion.div
-                  key={match.id}
-                  variants={itemVariants}
-                  custom={idx}
-                  transition={{ delay: idx * 0.1 }}
-                >
-                  <Card hover className="h-full p-6 md:p-8 flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-center mb-6">
-                        <span className="text-xs font-oswald uppercase tracking-widest text-brand font-bold">
-                          {new Date(match.date).toLocaleDateString('es-AR', {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </span>
-                        <span className="text-sm font-oswald uppercase tracking-wider text-white font-bold">
-                          {match.time}
-                        </span>
-                      </div>
-
-                      <div className="mb-6">
-                        <h3 className="font-teko text-2xl uppercase mb-2 text-white">
-                          {match.homeTeam.name}
-                        </h3>
-                        <p className="text-muted mb-3 uppercase font-oswald tracking-wider">vs {match.awayTeam.name}</p>
-                        <p className="text-xs text-muted/80 uppercase">
-                          📍 {match.venue}
-                        </p>
-                      </div>
-                    </div>
-
-                    <Button variant="outline" className="w-full text-sm font-bold">
-                      Ver Detalles
-                    </Button>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-
-            <motion.div
-              variants={itemVariants}
-              className="mt-12 text-center"
-            >
-              <Button variant="primary" className="text-base">
-                Ver Fixture Completa
-              </Button>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Image Section 9.jpg */}
-      <section className="relative py-20 md:py-32 overflow-hidden">
-        <motion.div
-          className="absolute inset-0 z-0"
-          variants={imageVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          <img
-            src="/9.jpg"
-            alt="Galería Belgrano"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/60" />
-        </motion.div>
-
-        <div className="relative z-10 app-container text-center">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-          >
-            <motion.div variants={itemVariants} className="mb-6">
-              <span className="section-label text-white/90 justify-center">
-                <Trophy size={14} />
-                Momentos Icónicos
-              </span>
-            </motion.div>
-
-            <motion.h2
-              variants={itemVariants}
-              className="text-4xl md:text-5xl font-teko font-black uppercase mb-6 text-white max-w-2xl mx-auto"
-            >
-              Cada foto es una Victoria
-            </motion.h2>
-
-            <motion.p
-              variants={itemVariants}
-              className="text-lg text-white/80 mb-10 max-w-2xl mx-auto"
-            >
-              La historia de Belgrano escrita en imágenes. Campeonatos ganados, generaciones formadas, comunidad unida.
-            </motion.p>
-
-            <motion.div variants={itemVariants}>
-              <Button variant="primary" className="text-base">
-                Ver Galería Completa
-                <ArrowRight size={18} className="ml-2" />
-              </Button>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Gallery Preview Grid */}
-      <section className="py-20 md:py-28 bg-dark">
-        <div className="app-container">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-          >
-            <motion.div variants={itemVariants} className="mb-12">
-              <h2 className="text-4xl md:text-5xl font-teko font-black uppercase mb-3">
-                Galería
-              </h2>
-              <p className="text-muted">Momentos que perduran en la memoria</p>
-            </motion.div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {['/hero-bg.png', '/team-photo.png', '/gallery-stadium.png'].map((img, idx) => (
-                <motion.div
-                  key={idx}
-                  variants={itemVariants}
-                  className="group relative aspect-video rounded-lg overflow-hidden shadow-lg"
-                >
-                  <img
-                    src={img}
-                    alt={`Galería ${idx + 1}`}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-brand/0 group-hover:bg-brand/40 transition-colors duration-300 flex items-center justify-center">
-                    <Play size={48} className="text-white/0 group-hover:text-white/80 transition-colors" />
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Player Spotlight Section with webperfiljob1.jpg */}
-      <section className="relative py-20 md:py-32 overflow-hidden">
-        <motion.div
-          className="absolute inset-0 z-0"
-          variants={imageVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          <img
-            src="/webperfiljob1.jpg"
-            alt="Plantel Belgrano"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-l from-black/80 via-black/60 to-black/40" />
-        </motion.div>
-
-        <div className="relative z-10 app-container">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            className="max-w-2xl"
-          >
-            <motion.div variants={itemVariants} className="mb-6">
-              <span className="section-label text-white/90">
-                <Users size={14} />
-                Nuestro Plantel
-              </span>
-            </motion.div>
-
-            <motion.h2
-              variants={itemVariants}
-              className="text-4xl md:text-5xl font-teko font-black uppercase mb-6 text-white"
-            >
-              Talento en Cancha
-            </motion.h2>
-
-            <motion.p
-              variants={itemVariants}
-              className="text-lg text-white/80 mb-8 leading-relaxed"
-            >
-              Los mejores jugadores de Tucumán visten los colores de Belgrano. Dedicación, disciplina y pasión en cada entrenamiento y cada partido.
-            </motion.p>
-
-            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4">
-              <Button variant="primary" className="text-base">
-                Ver Plantel Completo
-                <ArrowRight size={18} className="ml-2" />
-              </Button>
-              <Button variant="secondary" className="text-base">
-                Estadísticas
-              </Button>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Community Section */}
-      <section className="py-20 md:py-28 bg-surface">
-        <div className="app-container">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
+            animate="visible"
             className="text-center"
           >
-            <motion.div variants={itemVariants} className="mb-6">
-              <span className="section-label justify-center">
-                <Users size={14} />
-                Sé Parte
-              </span>
-            </motion.div>
-
-            <motion.h2
+            <motion.h1
               variants={itemVariants}
-              className="text-4xl md:text-5xl font-teko font-black uppercase mb-6 text-white"
+              className="text-5xl md:text-6xl font-teko font-black uppercase mb-4 text-white"
             >
-              Únete a la Familia Belgrano
-            </motion.h2>
+              Business Analytics
+            </motion.h1>
 
             <motion.p
               variants={itemVariants}
-              className="text-lg text-muted mb-10 max-w-2xl mx-auto"
+              className="text-lg md:text-xl text-muted mb-8"
             >
-              Socios, aficionados, voluntarios. En Belgrano hay un lugar para todos. Desde 1920, construimos juntos la historia.
+              Analiza tu negocio de desarrollo web en tiempo real
             </motion.p>
 
-            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="primary" className="text-base">
-                Hacerse Socio
-                <ArrowRight size={18} className="ml-2" />
-              </Button>
-              <Button variant="secondary" className="text-base">
-                Contactar
-              </Button>
+            <motion.button
+              variants={itemVariants}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowForm(!showForm)}
+              className="px-8 py-4 bg-gradient-to-r from-brand to-brand-light text-white font-oswald uppercase font-bold text-sm tracking-wider rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 mx-auto"
+            >
+              <Plus size={20} />
+              Nueva Venta / Presupuesto
+            </motion.button>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Stats Grid */}
+      <section className="py-16 md:py-24 bg-dark">
+        <div className="app-container max-w-5xl">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6"
+          >
+            {/* Total Earnings */}
+            <motion.div
+              variants={itemVariants}
+              className="bg-gradient-to-br from-green-600 to-green-700 p-6 rounded-lg shadow-lg"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-oswald uppercase tracking-wider text-green-100">Ganancias Total</span>
+                <DollarSign size={20} className="text-green-200" />
+              </div>
+              <p className="text-3xl font-teko font-black text-white">
+                ${stats.totalEarnings.toLocaleString('es-AR')}
+              </p>
+            </motion.div>
+
+            {/* Apps Sold */}
+            <motion.div
+              variants={itemVariants}
+              className="bg-gradient-to-br from-blue-600 to-blue-700 p-6 rounded-lg shadow-lg"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-oswald uppercase tracking-wider text-blue-100">Apps Vendidas</span>
+                <Briefcase size={20} className="text-blue-200" />
+              </div>
+              <p className="text-3xl font-teko font-black text-white">
+                {stats.totalApps}
+              </p>
+            </motion.div>
+
+            {/* Completed Sales */}
+            <motion.div
+              variants={itemVariants}
+              className="bg-gradient-to-br from-purple-600 to-purple-700 p-6 rounded-lg shadow-lg"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-oswald uppercase tracking-wider text-purple-100">Ventas Completadas</span>
+                <TrendingUp size={20} className="text-purple-200" />
+              </div>
+              <p className="text-3xl font-teko font-black text-white">
+                {stats.totalSales}
+              </p>
+            </motion.div>
+
+            {/* Total Budgets */}
+            <motion.div
+              variants={itemVariants}
+              className="bg-gradient-to-br from-orange-600 to-orange-700 p-6 rounded-lg shadow-lg"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-oswald uppercase tracking-wider text-orange-100">Presupuestos Total</span>
+                <DollarSign size={20} className="text-orange-200" />
+              </div>
+              <p className="text-3xl font-teko font-black text-white">
+                {stats.totalBudgets}
+              </p>
+            </motion.div>
+
+            {/* Pending */}
+            <motion.div
+              variants={itemVariants}
+              className="bg-gradient-to-br from-red-600 to-red-700 p-6 rounded-lg shadow-lg"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-oswald uppercase tracking-wider text-red-100">Pendientes</span>
+                <Plus size={20} className="text-red-200" />
+              </div>
+              <p className="text-3xl font-teko font-black text-white">
+                {stats.pendingBudgets}
+              </p>
             </motion.div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Form Section */}
+      {showForm && (
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="py-16 bg-surface border-b border-white/10"
+        >
+          <div className="app-container max-w-3xl">
+            <h2 className="text-3xl font-teko font-black uppercase mb-8 text-white">
+              Registrar Nueva Venta
+            </h2>
+
+            <form onSubmit={handleAddSale} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Project Name */}
+                <div>
+                  <label className="block text-sm font-oswald uppercase tracking-wider text-white/80 mb-2">
+                    Nombre del Proyecto
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.project}
+                    onChange={(e) => setFormData({...formData, project: e.target.value})}
+                    placeholder="Ej: E-commerce TechStore"
+                    className="w-full bg-dark border border-white/10 px-4 py-3 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-brand transition-all"
+                    required
+                  />
+                </div>
+
+                {/* Type */}
+                <div>
+                  <label className="block text-sm font-oswald uppercase tracking-wider text-white/80 mb-2">
+                    Tipo
+                  </label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) => setFormData({...formData, type: e.target.value})}
+                    className="w-full bg-dark border border-white/10 px-4 py-3 rounded-lg text-white focus:outline-none focus:border-brand transition-all"
+                  >
+                    <option value="app">App/Website</option>
+                    <option value="presupuesto">Presupuesto</option>
+                    <option value="mantenimiento">Mantenimiento</option>
+                    <option value="consultoria">Consultoría</option>
+                  </select>
+                </div>
+
+                {/* Price */}
+                <div>
+                  <label className="block text-sm font-oswald uppercase tracking-wider text-white/80 mb-2">
+                    Precio ($)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => setFormData({...formData, price: e.target.value})}
+                    placeholder="5000"
+                    step="100"
+                    className="w-full bg-dark border border-white/10 px-4 py-3 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-brand transition-all"
+                    required
+                  />
+                </div>
+
+                {/* Date */}
+                <div>
+                  <label className="block text-sm font-oswald uppercase tracking-wider text-white/80 mb-2">
+                    Fecha
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData({...formData, date: e.target.value})}
+                    className="w-full bg-dark border border-white/10 px-4 py-3 rounded-lg text-white focus:outline-none focus:border-brand transition-all"
+                  />
+                </div>
+
+                {/* Status */}
+                <div>
+                  <label className="block text-sm font-oswald uppercase tracking-wider text-white/80 mb-2">
+                    Estado
+                  </label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                    className="w-full bg-dark border border-white/10 px-4 py-3 rounded-lg text-white focus:outline-none focus:border-brand transition-all"
+                  >
+                    <option value="completed">Completado</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="en-proceso">En Proceso</option>
+                  </select>
+                </div>
+
+                {/* Description */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-oswald uppercase tracking-wider text-white/80 mb-2">
+                    Descripción
+                  </label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    placeholder="Detalles del proyecto..."
+                    className="w-full bg-dark border border-white/10 px-4 py-3 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-brand transition-all h-24 resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  type="submit"
+                  className="px-8 py-3 bg-brand text-white font-oswald uppercase font-bold text-sm tracking-wider rounded-lg hover:bg-brand-light transition-all"
+                >
+                  Guardar Venta
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="px-8 py-3 bg-white/10 text-white font-oswald uppercase font-bold text-sm tracking-wider rounded-lg hover:bg-white/20 transition-all"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </motion.section>
+      )}
+
+      {/* Sales Table */}
+      <section className="py-16 md:py-24 bg-dark">
+        <div className="app-container max-w-6xl">
+          <h2 className="text-3xl font-teko font-black uppercase mb-8 text-white">
+            Historial de Ventas
+          </h2>
+
+          {sales.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted text-lg">No hay registros aún. ¡Crea tu primera venta!</p>
+            </div>
+          ) : (
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="overflow-x-auto rounded-lg border border-white/10"
+            >
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-surface border-b border-white/10">
+                    <th className="px-6 py-4 text-left text-xs font-oswald uppercase tracking-wider text-white/70">Proyecto</th>
+                    <th className="px-6 py-4 text-left text-xs font-oswald uppercase tracking-wider text-white/70">Tipo</th>
+                    <th className="px-6 py-4 text-right text-xs font-oswald uppercase tracking-wider text-white/70">Precio</th>
+                    <th className="px-6 py-4 text-left text-xs font-oswald uppercase tracking-wider text-white/70">Fecha</th>
+                    <th className="px-6 py-4 text-left text-xs font-oswald uppercase tracking-wider text-white/70">Estado</th>
+                    <th className="px-6 py-4 text-center text-xs font-oswald uppercase tracking-wider text-white/70">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sales.map((sale) => (
+                    <motion.tr
+                      key={sale.id}
+                      variants={itemVariants}
+                      className="border-b border-white/5 hover:bg-surface/50 transition-colors"
+                    >
+                      <td className="px-6 py-4 text-white font-semibold">{sale.project}</td>
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 bg-brand/20 text-brand text-xs font-oswald uppercase rounded-full">
+                          {sale.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right font-teko text-lg text-green-400">
+                        ${sale.price.toLocaleString('es-AR')}
+                      </td>
+                      <td className="px-6 py-4 text-muted text-sm">
+                        {new Date(sale.date).toLocaleDateString('es-AR')}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 text-xs font-oswald uppercase rounded-full ${
+                          sale.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                          sale.status === 'pendiente' ? 'bg-orange-500/20 text-orange-400' :
+                          'bg-blue-500/20 text-blue-400'
+                        }`}>
+                          {sale.status === 'completed' ? 'Completado' :
+                           sale.status === 'pendiente' ? 'Pendiente' : 'En Proceso'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={() => handleDelete(sale.id)}
+                          className="text-red-400 hover:text-red-300 text-sm font-oswald uppercase tracking-wider transition-colors"
+                        >
+                          Eliminar
+                        </button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </motion.div>
+          )}
         </div>
       </section>
     </div>

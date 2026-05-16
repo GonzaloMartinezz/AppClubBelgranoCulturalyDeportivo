@@ -3,7 +3,16 @@
     "allow": [
       "Bash(Remove-Item -Recurse -Force \"D:\\\\Dev\\\\REPOSITORIOS VSCODE \\(GITHUB PROYECTOS\\)\\\\PROYECTOS EN PROCESO\\\\AppClubBelgranoCulturalyDeportivo\\\\server\" -ErrorAction SilentlyContinue)",
       "Bash(Write-Host \"Carpeta server eliminada\")",
-      "WebFetch(domain:baronissisportsclub.webflow.io)"
+      "WebFetch(domain:baronissisportsclub.webflow.io)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(npm run *)",
+      "Bash(timeout 20 bash -c \"cd 'D:\\\\Dev\\\\REPOSITORIOS VSCODE \\(GITHUB PROYECTOS\\)\\\\PROYECTOS EN PROCESO\\\\AppClubBelgranoCulturalyDeportivo' && npm run dev 2>&1\")",
+      "Bash(tee server_output.txt)",
+      "Bash(curl -s http://localhost:3002/)",
+      "Bash(git commit *)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(rm -rf node_modules/.vite)"
     ]
   }
 }
