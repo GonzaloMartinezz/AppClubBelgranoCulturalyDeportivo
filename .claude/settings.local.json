@@ -12,7 +12,9 @@
       "Bash(curl -s http://localhost:3002/)",
       "Bash(git commit *)",
       "Bash(taskkill /F /IM node.exe)",
-      "Bash(rm -rf node_modules/.vite)"
+      "Bash(rm -rf node_modules/.vite)",
+      "Bash(git push *)",
+      "Bash(git remote *)"
     ]
   }
 }

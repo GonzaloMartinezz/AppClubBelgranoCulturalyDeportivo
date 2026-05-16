@@ -1,17 +1,21 @@
-import Navbar from './components/layout/Navbar';
-import Footer from './components/layout/FooterNew';
-import HomePage from './pages/HomePage';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { TransactionsProvider } from './context/TransactionsContext.jsx';
+import { AppShell } from './components/layout/AppShell';
+import DashboardPage from './pages/DashboardPage';
+import TransactionsPage from './pages/TransactionsPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 
-function App() {
-  return (
-    <div className="min-h-screen bg-dark text-white font-sans selection:bg-brand selection:text-dark overflow-x-hidden flex flex-col">
-      <Navbar />
-      <main className="flex-1">
-        <HomePage />
-      </main>
-      <Footer />
-    </div>
-  );
-}
+const App = () => (
+  <TransactionsProvider>
+    <Routes>
+      <Route element={<AppShell />}>
+        <Route index element={<DashboardPage />} />
+        <Route path="movimientos" element={<TransactionsPage />} />
+        <Route path="analisis" element={<AnalyticsPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
+    </Routes>
+  </TransactionsProvider>
+);
 
 export default App;
