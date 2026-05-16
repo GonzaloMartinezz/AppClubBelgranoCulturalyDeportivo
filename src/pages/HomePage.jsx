@@ -1,69 +1,51 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, TrendingUp, DollarSign, Briefcase, BarChart3, PieChart, Calendar } from 'lucide-react';
+import { Plus, Trash2, DollarSign, TrendingUp, Calendar } from 'lucide-react';
 
 const HomePage = () => {
   const [sales, setSales] = useState(() => {
-    const saved = localStorage.getItem('sales');
+    const saved = localStorage.getItem('devSales');
     return saved ? JSON.parse(saved) : [];
   });
-  const [showForm, setShowForm] = useState(false);
+
   const [formData, setFormData] = useState({
     project: '',
-    type: 'app',
     price: '',
     date: new Date().toISOString().split('T')[0],
-    status: 'completed',
-    description: ''
+    status: 'pendiente'
   });
 
+  const [showForm, setShowForm] = useState(false);
+
   useEffect(() => {
-    localStorage.setItem('sales', JSON.stringify(sales));
+    localStorage.setItem('devSales', JSON.stringify(sales));
   }, [sales]);
 
-  // Análisis avanzado
-  const analytics = useMemo(() => {
-    const completed = sales.filter(s => s.status === 'completed');
-    const byType = {};
-    const byMonth = {};
-
-    sales.forEach(s => {
-      byType[s.type] = (byType[s.type] || 0) + 1;
-      const month = new Date(s.date).toLocaleDateString('es-AR', { month: 'short', year: '2-digit' });
-      byMonth[month] = (byMonth[month] || 0) + (s.status === 'completed' ? parseFloat(s.price) || 0 : 0);
-    });
-
-    return {
-      totalSales: completed.length,
-      totalBudgets: sales.filter(s => s.type === 'presupuesto').length,
-      totalApps: sales.filter(s => s.type === 'app').length,
-      totalEarnings: completed.reduce((sum, s) => sum + (parseFloat(s.price) || 0), 0),
-      pendingBudgets: sales.filter(s => s.status === 'pendiente').length,
-      pendingAmount: sales.filter(s => s.status === 'pendiente').reduce((sum, s) => sum + (parseFloat(s.price) || 0), 0),
-      averageProject: completed.length ? (completed.reduce((sum, s) => sum + (parseFloat(s.price) || 0), 0) / completed.length).toFixed(0) : 0,
-      byType,
-      byMonth,
-      monthlyData: Object.entries(byMonth)
-    };
-  }, [sales]);
+  const stats = {
+    total: sales.reduce((sum, s) => sum + parseFloat(s.price || 0), 0),
+    completed: sales.filter(s => s.status === 'completado').length,
+    pending: sales.filter(s => s.status === 'pendiente').length,
+    projects: sales.length
+  };
 
   const handleAddSale = (e) => {
     e.preventDefault();
     if (!formData.project || !formData.price) return;
 
-    setSales([...sales, {
-      id: Date.now(),
-      ...formData,
-      price: parseFloat(formData.price)
-    }]);
+    setSales([
+      ...sales,
+      {
+        id: Date.now(),
+        ...formData,
+        price: parseFloat(formData.price)
+      }
+    ]);
 
     setFormData({
       project: '',
-      type: 'app',
       price: '',
       date: new Date().toISOString().split('T')[0],
-      status: 'completed',
-      description: ''
+      status: 'pendiente'
     });
     setShowForm(false);
   };
@@ -72,9 +54,20 @@ const HomePage = () => {
     setSales(sales.filter(s => s.id !== id));
   };
 
+  const toggleStatus = (id) => {
+    setSales(sales.map(s =>
+      s.id === id
+        ? { ...s, status: s.status === 'pendiente' ? 'completado' : 'pendiente' }
+        : s
+    ));
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.1 } }
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.2 }
+    }
   };
 
   const itemVariants = {
@@ -82,454 +75,312 @@ const HomePage = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
   };
 
-  // Gráfico simple en SVG
-  const maxEarning = Math.max(...analytics.monthlyData.map(([_, v]) => v), 1);
-  const chartHeight = 150;
-  const barWidth = analytics.monthlyData.length ? 100 / analytics.monthlyData.length : 100;
-
   return (
     <div className="w-full bg-dark min-h-screen pt-20 md:pt-24">
       {/* Hero con imagen 3.webp */}
       <motion.section
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="relative h-80 md:h-96 overflow-hidden"
+        className="relative h-96 md:h-[500px] overflow-hidden mb-16"
       >
         <img
           src="/3.webp"
-          alt="Dashboard Hero"
+          alt="Dashboard"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-dark/80 via-dark/60 to-dark/80 flex items-center justify-center">
+        <div className="absolute inset-0 bg-gradient-to-r from-dark/95 via-dark/70 to-transparent flex items-center">
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="text-center"
+            className="app-container max-w-4xl"
           >
             <motion.h1
               variants={itemVariants}
-              className="text-5xl md:text-6xl font-teko font-black uppercase mb-4 text-white"
+              className="text-6xl md:text-7xl font-teko font-black uppercase text-white mb-6 leading-tight"
             >
-              Business Intelligence
+              Gestiona tu<br />Negocio Web
             </motion.h1>
 
             <motion.p
               variants={itemVariants}
-              className="text-lg md:text-xl text-white/90 mb-8"
+              className="text-xl md:text-2xl text-white/90 mb-10 max-w-2xl"
             >
-              Análisis profesional de tu negocio de desarrollo web
+              Registra, analiza y crece. Control total de tus proyectos y ganancias en un solo lugar.
             </motion.p>
 
             <motion.button
               variants={itemVariants}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setShowForm(!showForm)}
-              className="px-8 py-4 bg-gradient-to-r from-brand to-brand-light text-white font-oswald uppercase font-bold text-sm tracking-wider rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 mx-auto"
+              onClick={() => setShowForm(true)}
+              className="px-8 py-4 bg-gradient-to-r from-brand to-brand-light text-white font-oswald uppercase font-bold tracking-wider rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-3 text-lg"
             >
-              <Plus size={20} />
-              Registrar Venta
+              <Plus size={24} />
+              Agregar Proyecto
             </motion.button>
           </motion.div>
         </div>
       </motion.section>
 
-      {/* Stats Grid Principal */}
-      <section className="py-16 md:py-24 bg-dark">
-        <div className="app-container max-w-7xl">
+      {/* Stats Section */}
+      <section className="py-20 md:py-28 bg-gradient-to-b from-dark to-surface">
+        <div className="app-container max-w-6xl">
           <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 md:gap-6"
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
           >
-            {/* Earnings */}
             <motion.div
               variants={itemVariants}
-              className="lg:col-span-2 bg-gradient-to-br from-green-600 to-green-700 p-8 rounded-lg shadow-lg hover:shadow-xl transition-all"
+              className="bg-gradient-to-br from-green-600 to-green-700 p-8 rounded-xl shadow-xl"
             >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-oswald uppercase tracking-wider text-green-100">Ganancias Total</span>
-                <DollarSign size={24} className="text-green-200" />
-              </div>
-              <p className="text-4xl font-teko font-black text-white mb-2">
-                ${analytics.totalEarnings.toLocaleString('es-AR')}
+              <DollarSign className="text-green-200 mb-3" size={32} />
+              <p className="text-white/80 text-sm font-oswald uppercase tracking-wider mb-2">Total</p>
+              <p className="text-4xl md:text-5xl font-teko font-black text-white">
+                ${stats.total.toLocaleString()}
               </p>
-              <p className="text-xs text-green-100">De {analytics.totalSales} proyectos completados</p>
             </motion.div>
 
-            {/* Apps Sold */}
             <motion.div
               variants={itemVariants}
-              className="bg-gradient-to-br from-blue-600 to-blue-700 p-8 rounded-lg shadow-lg"
+              className="bg-gradient-to-br from-blue-600 to-blue-700 p-8 rounded-xl shadow-xl"
             >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-oswald uppercase tracking-wider text-blue-100">Apps</span>
-                <Briefcase size={20} className="text-blue-200" />
-              </div>
-              <p className="text-3xl font-teko font-black text-white">{analytics.totalApps}</p>
+              <TrendingUp className="text-blue-200 mb-3" size={32} />
+              <p className="text-white/80 text-sm font-oswald uppercase tracking-wider mb-2">Completados</p>
+              <p className="text-4xl md:text-5xl font-teko font-black text-white">
+                {stats.completed}
+              </p>
             </motion.div>
 
-            {/* Completed */}
             <motion.div
               variants={itemVariants}
-              className="bg-gradient-to-br from-purple-600 to-purple-700 p-8 rounded-lg shadow-lg"
+              className="bg-gradient-to-br from-orange-600 to-orange-700 p-8 rounded-xl shadow-xl"
             >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-oswald uppercase tracking-wider text-purple-100">Completados</span>
-                <TrendingUp size={20} className="text-purple-200" />
-              </div>
-              <p className="text-3xl font-teko font-black text-white">{analytics.totalSales}</p>
+              <Calendar className="text-orange-200 mb-3" size={32} />
+              <p className="text-white/80 text-sm font-oswald uppercase tracking-wider mb-2">Pendientes</p>
+              <p className="text-4xl md:text-5xl font-teko font-black text-white">
+                {stats.pending}
+              </p>
             </motion.div>
 
-            {/* Budgets */}
             <motion.div
               variants={itemVariants}
-              className="bg-gradient-to-br from-orange-600 to-orange-700 p-8 rounded-lg shadow-lg"
+              className="bg-gradient-to-br from-purple-600 to-purple-700 p-8 rounded-xl shadow-xl"
             >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-oswald uppercase tracking-wider text-orange-100">Presupuestos</span>
-                <BarChart3 size={20} className="text-orange-200" />
-              </div>
-              <p className="text-3xl font-teko font-black text-white">{analytics.totalBudgets}</p>
-            </motion.div>
-
-            {/* Pending */}
-            <motion.div
-              variants={itemVariants}
-              className="bg-gradient-to-br from-red-600 to-red-700 p-8 rounded-lg shadow-lg"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-oswald uppercase tracking-wider text-red-100">Pendiente</span>
-                <Calendar size={20} className="text-red-200" />
-              </div>
-              <p className="text-3xl font-teko font-black text-white">{analytics.pendingBudgets}</p>
+              <Plus className="text-purple-200 mb-3" size={32} />
+              <p className="text-white/80 text-sm font-oswald uppercase tracking-wider mb-2">Proyectos</p>
+              <p className="text-4xl md:text-5xl font-teko font-black text-white">
+                {stats.projects}
+              </p>
             </motion.div>
           </motion.div>
         </div>
       </section>
-
-      {/* Análisis Cards con Imágenes */}
-      <section className="py-16 md:py-24 bg-surface">
-        <div className="app-container max-w-7xl">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
-          >
-            {/* Card 1 - Imagen 5.jpg */}
-            <motion.div
-              variants={itemVariants}
-              className="group relative h-80 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all"
-            >
-              <img
-                src="/5.jpg"
-                alt="Promedio por Proyecto"
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-dark/90 via-dark/40 to-dark/20"></div>
-              <div className="absolute bottom-0 left-0 right-0 p-6">
-                <p className="text-xs font-oswald uppercase tracking-wider text-white/70 mb-2">Promedio</p>
-                <p className="text-3xl font-teko font-black text-white mb-2">
-                  ${analytics.averageProject.toLocaleString('es-AR')}
-                </p>
-                <p className="text-xs text-white/60">Por proyecto</p>
-              </div>
-            </motion.div>
-
-            {/* Card 2 - Imagen 4.webp */}
-            <motion.div
-              variants={itemVariants}
-              className="group relative h-80 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all"
-            >
-              <img
-                src="/4.webp"
-                alt="Pendiente de Cobrar"
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-dark/90 via-dark/40 to-dark/20"></div>
-              <div className="absolute bottom-0 left-0 right-0 p-6">
-                <p className="text-xs font-oswald uppercase tracking-wider text-amber-300 mb-2">Pendiente</p>
-                <p className="text-3xl font-teko font-black text-white mb-2">
-                  ${analytics.pendingAmount.toLocaleString('es-AR')}
-                </p>
-                <p className="text-xs text-white/60">En {analytics.pendingBudgets} proyectos</p>
-              </div>
-            </motion.div>
-
-            {/* Card 3 - Análisis de Tipos */}
-            <motion.div
-              variants={itemVariants}
-              className="bg-gradient-to-br from-indigo-600 to-indigo-700 p-8 rounded-lg shadow-lg"
-            >
-              <p className="text-xs font-oswald uppercase tracking-wider text-indigo-100 mb-6">Distribución</p>
-              <div className="space-y-4">
-                {Object.entries(analytics.byType).map(([type, count]) => (
-                  <div key={type}>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-xs text-indigo-100 capitalize">{type}</span>
-                      <span className="text-xs font-bold text-white">{count}</span>
-                    </div>
-                    <div className="w-full bg-indigo-900 rounded-full h-2">
-                      <div
-                        className="bg-indigo-300 h-2 rounded-full transition-all"
-                        style={{ width: `${(count / Math.max(...Object.values(analytics.byType), 1)) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Gráfico de Ganancias Mensuales */}
-      {analytics.monthlyData.length > 0 && (
-        <section className="py-16 md:py-24 bg-dark">
-          <div className="app-container max-w-7xl">
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              <motion.h2
-                variants={itemVariants}
-                className="text-3xl font-teko font-black uppercase mb-8 text-white"
-              >
-                Ganancias Mensuales
-              </motion.h2>
-
-              <motion.div
-                variants={itemVariants}
-                className="bg-surface p-8 rounded-lg border border-white/10"
-              >
-                <svg viewBox={`0 0 ${Math.max(400, analytics.monthlyData.length * 80)} 250`} className="w-full">
-                  {/* Grid líneas */}
-                  {[0, 25, 50, 75, 100].map((i) => (
-                    <line
-                      key={`grid-${i}`}
-                      x1="50"
-                      y1={chartHeight - (i / 100) * chartHeight + 30}
-                      x2={Math.max(400, analytics.monthlyData.length * 80) - 20}
-                      y2={chartHeight - (i / 100) * chartHeight + 30}
-                      stroke="rgba(255,255,255,0.1)"
-                      strokeWidth="1"
-                    />
-                  ))}
-
-                  {/* Barras */}
-                  {analytics.monthlyData.map(([month, value], idx) => {
-                    const barHeight = (value / maxEarning) * chartHeight;
-                    const x = 50 + idx * (barWidth + 8);
-                    return (
-                      <g key={month}>
-                        <rect
-                          x={x}
-                          y={chartHeight - barHeight + 30}
-                          width={barWidth - 4}
-                          height={barHeight}
-                          fill="url(#gradient)"
-                          rx="4"
-                          className="hover:opacity-80 transition-opacity"
-                        />
-                        <text
-                          x={x + (barWidth - 4) / 2}
-                          y={chartHeight + 50}
-                          textAnchor="middle"
-                          fill="rgba(255,255,255,0.6)"
-                          fontSize="12"
-                        >
-                          {month}
-                        </text>
-                        <text
-                          x={x + (barWidth - 4) / 2}
-                          y={chartHeight - barHeight + 15}
-                          textAnchor="middle"
-                          fill="white"
-                          fontSize="11"
-                          fontWeight="bold"
-                        >
-                          ${(value / 1000).toFixed(0)}k
-                        </text>
-                      </g>
-                    );
-                  })}
-
-                  {/* Gradient */}
-                  <defs>
-                    <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#3b82f6" />
-                      <stop offset="100%" stopColor="#1e40af" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </motion.div>
-            </motion.div>
-          </div>
-        </section>
-      )}
 
       {/* Formulario */}
       {showForm && (
         <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="py-16 bg-surface border-b border-white/10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 pt-24"
         >
-          <div className="app-container max-w-3xl">
-            <h2 className="text-3xl font-teko font-black uppercase mb-8 text-white">Registrar Nueva Venta</h2>
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-surface rounded-xl shadow-2xl max-w-2xl w-full p-8 max-h-[80vh] overflow-y-auto"
+          >
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-4xl font-teko font-black uppercase text-white">Nuevo Proyecto</h2>
+              <button
+                onClick={() => setShowForm(false)}
+                className="text-white/60 hover:text-white transition text-2xl"
+              >
+                ✕
+              </button>
+            </div>
 
             <form onSubmit={handleAddSale} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-oswald uppercase tracking-wider text-white/80 mb-3">
+                  Nombre del Proyecto
+                </label>
                 <input
                   type="text"
                   value={formData.project}
-                  onChange={(e) => setFormData({...formData, project: e.target.value})}
-                  placeholder="Nombre del proyecto"
-                  className="w-full bg-dark border border-white/10 px-4 py-3 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-brand"
+                  onChange={(e) => setFormData({ ...formData, project: e.target.value })}
+                  placeholder="Ej: E-commerce TechStore"
+                  className="w-full bg-dark border-2 border-white/10 px-6 py-4 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-brand transition-all text-lg"
                   required
-                />
-
-                <select
-                  value={formData.type}
-                  onChange={(e) => setFormData({...formData, type: e.target.value})}
-                  className="w-full bg-dark border border-white/10 px-4 py-3 rounded-lg text-white focus:outline-none focus:border-brand"
-                >
-                  <option value="app">App/Website</option>
-                  <option value="presupuesto">Presupuesto</option>
-                  <option value="mantenimiento">Mantenimiento</option>
-                </select>
-
-                <input
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: e.target.value})}
-                  placeholder="Precio"
-                  step="100"
-                  className="w-full bg-dark border border-white/10 px-4 py-3 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-brand"
-                  required
-                />
-
-                <input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({...formData, date: e.target.value})}
-                  className="w-full bg-dark border border-white/10 px-4 py-3 rounded-lg text-white focus:outline-none focus:border-brand"
-                />
-
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({...formData, status: e.target.value})}
-                  className="w-full bg-dark border border-white/10 px-4 py-3 rounded-lg text-white focus:outline-none focus:border-brand"
-                >
-                  <option value="completed">Completado</option>
-                  <option value="pendiente">Pendiente</option>
-                </select>
-
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  placeholder="Descripción"
-                  className="md:col-span-2 w-full bg-dark border border-white/10 px-4 py-3 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-brand h-24 resize-none"
                 />
               </div>
 
-              <div className="flex gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-oswald uppercase tracking-wider text-white/80 mb-3">
+                    Precio ($)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    placeholder="5000"
+                    step="100"
+                    className="w-full bg-dark border-2 border-white/10 px-6 py-4 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-brand transition-all text-lg"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-oswald uppercase tracking-wider text-white/80 mb-3">
+                    Fecha
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    className="w-full bg-dark border-2 border-white/10 px-6 py-4 rounded-lg text-white focus:outline-none focus:border-brand transition-all text-lg"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-oswald uppercase tracking-wider text-white/80 mb-3">
+                  Estado
+                </label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  className="w-full bg-dark border-2 border-white/10 px-6 py-4 rounded-lg text-white focus:outline-none focus:border-brand transition-all text-lg"
+                >
+                  <option value="pendiente">Pendiente</option>
+                  <option value="completado">Completado</option>
+                </select>
+              </div>
+
+              <div className="flex gap-4 pt-6">
                 <button
                   type="submit"
-                  className="px-8 py-3 bg-brand text-white font-oswald uppercase font-bold rounded-lg hover:bg-brand-light transition"
+                  className="flex-1 px-8 py-4 bg-gradient-to-r from-brand to-brand-light text-white font-oswald uppercase font-bold tracking-wider rounded-lg hover:shadow-lg transition-all text-lg"
                 >
-                  Guardar
+                  Guardar Proyecto
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="px-8 py-3 bg-white/10 text-white font-oswald uppercase font-bold rounded-lg hover:bg-white/20 transition"
+                  className="flex-1 px-8 py-4 bg-white/10 text-white font-oswald uppercase font-bold tracking-wider rounded-lg hover:bg-white/20 transition-all text-lg"
                 >
                   Cancelar
                 </button>
               </div>
             </form>
-          </div>
+          </motion.div>
         </motion.section>
       )}
 
-      {/* Tabla de Historial */}
-      <section className="py-16 md:py-24 bg-dark">
-        <div className="app-container max-w-7xl">
-          <h2 className="text-3xl font-teko font-black uppercase mb-8 text-white">
-            Historial Completo
+      {/* Lista de Proyectos */}
+      <section className="py-20 md:py-28 bg-dark">
+        <div className="app-container max-w-6xl">
+          <h2 className="text-5xl font-teko font-black uppercase text-white mb-12">
+            Tus Proyectos
           </h2>
 
           {sales.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted text-lg">No hay registros. ¡Crea tu primer registro!</p>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-20"
+            >
+              <p className="text-2xl text-muted mb-6">No hay proyectos aún</p>
+              <button
+                onClick={() => setShowForm(true)}
+                className="px-8 py-4 bg-brand text-white font-oswald uppercase font-bold tracking-wider rounded-lg hover:bg-brand-light transition-all"
+              >
+                Crear Primer Proyecto
+              </button>
+            </motion.div>
           ) : (
             <motion.div
               variants={containerVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="overflow-x-auto rounded-lg border border-white/10"
+              className="space-y-4"
             >
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-surface border-b border-white/10">
-                    <th className="px-6 py-4 text-left text-xs font-oswald uppercase text-white/70">Proyecto</th>
-                    <th className="px-6 py-4 text-left text-xs font-oswald uppercase text-white/70">Tipo</th>
-                    <th className="px-6 py-4 text-right text-xs font-oswald uppercase text-white/70">Precio</th>
-                    <th className="px-6 py-4 text-left text-xs font-oswald uppercase text-white/70">Fecha</th>
-                    <th className="px-6 py-4 text-left text-xs font-oswald uppercase text-white/70">Estado</th>
-                    <th className="px-6 py-4 text-center text-xs font-oswald uppercase text-white/70">Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sales.map((sale) => (
-                    <motion.tr
-                      key={sale.id}
-                      variants={itemVariants}
-                      className="border-b border-white/5 hover:bg-surface/50 transition"
-                    >
-                      <td className="px-6 py-4 text-white font-semibold">{sale.project}</td>
-                      <td className="px-6 py-4">
-                        <span className="px-3 py-1 bg-brand/20 text-brand text-xs font-oswald rounded-full">
-                          {sale.type}
+              {sales.map((sale) => (
+                <motion.div
+                  key={sale.id}
+                  variants={itemVariants}
+                  className={`p-8 rounded-xl border-2 transition-all ${
+                    sale.status === 'completado'
+                      ? 'bg-green-500/10 border-green-500/30 hover:border-green-500/60'
+                      : 'bg-orange-500/10 border-orange-500/30 hover:border-orange-500/60'
+                  }`}
+                >
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-teko font-black text-white mb-3">
+                        {sale.project}
+                      </h3>
+                      <div className="flex flex-col md:flex-row md:items-center gap-4 text-muted">
+                        <span className="text-lg">
+                          💰 <span className="font-bold text-white">${sale.price.toLocaleString()}</span>
                         </span>
-                      </td>
-                      <td className="px-6 py-4 text-right font-teko text-lg text-green-400">
-                        ${sale.price.toLocaleString('es-AR')}
-                      </td>
-                      <td className="px-6 py-4 text-muted text-sm">
-                        {new Date(sale.date).toLocaleDateString('es-AR')}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 text-xs font-oswald rounded-full ${
-                          sale.status === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-orange-500/20 text-orange-400'
+                        <span className="text-lg">
+                          📅 {new Date(sale.date).toLocaleDateString('es-AR')}
+                        </span>
+                        <span className={`px-4 py-2 rounded-full font-oswald uppercase font-bold text-sm ${
+                          sale.status === 'completado'
+                            ? 'bg-green-500/30 text-green-300'
+                            : 'bg-orange-500/30 text-orange-300'
                         }`}>
-                          {sale.status === 'completed' ? 'Completado' : 'Pendiente'}
+                          {sale.status === 'completado' ? '✓ Completado' : '⏳ Pendiente'}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <button
-                          onClick={() => handleDelete(sale.id)}
-                          className="text-red-400 hover:text-red-300 text-sm font-oswald uppercase transition"
-                        >
-                          Eliminar
-                        </button>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => toggleStatus(sale.id)}
+                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-oswald uppercase font-bold rounded-lg transition-all"
+                      >
+                        {sale.status === 'completado' ? 'Pendiente' : 'Completar'}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(sale.id)}
+                        className="px-6 py-3 bg-red-600/20 hover:bg-red-600/40 text-red-300 font-oswald uppercase font-bold rounded-lg transition-all flex items-center gap-2"
+                      >
+                        <Trash2 size={20} />
+                        Borrar
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
             </motion.div>
           )}
+        </div>
+      </section>
+
+      {/* Footer Stats */}
+      <section className="py-16 bg-gradient-to-t from-surface to-dark border-t border-white/10">
+        <div className="app-container max-w-6xl text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="space-y-4"
+          >
+            <p className="text-white/60 text-lg">
+              Total en proyectos: <span className="font-teko text-3xl font-black text-white">${stats.total.toLocaleString()}</span>
+            </p>
+            <p className="text-white/60 text-lg">
+              Proyectos completados: <span className="font-teko text-2xl font-black text-green-400">{stats.completed}</span>
+            </p>
+          </motion.div>
         </div>
       </section>
     </div>
