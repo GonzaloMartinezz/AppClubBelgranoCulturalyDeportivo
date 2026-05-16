@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Instagram, Facebook, Mail, MapPin, Phone, Linkedin, Youtube } from 'lucide-react';
+import { Instagram, Mail, MapPin, Phone, Linkedin, Share2, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const FooterNew = () => {
@@ -40,8 +40,8 @@ const FooterNew = () => {
 
   const socialLinks = [
     { icon: Instagram, href: 'https://instagram.com/clubbelgrano', label: 'Instagram', color: 'hover:text-pink-400' },
-    { icon: Facebook, href: 'https://facebook.com/clubbelgrano', label: 'Facebook', color: 'hover:text-blue-400' },
-    { icon: Youtube, href: 'https://youtube.com/clubbelgrano', label: 'YouTube', color: 'hover:text-red-500' },
+    { icon: Share2, href: 'https://facebook.com/clubbelgrano', label: 'Facebook', color: 'hover:text-blue-400' },
+    { icon: Heart, href: 'https://youtube.com/clubbelgrano', label: 'YouTube', color: 'hover:text-red-500' },
     { icon: Linkedin, href: 'https://linkedin.com/company/clubbelgrano', label: 'LinkedIn', color: 'hover:text-blue-600' },
   ];
 
