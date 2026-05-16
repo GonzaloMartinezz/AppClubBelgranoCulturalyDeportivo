@@ -1,9 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
-  Plus, Trash2, TrendingUp, TrendingDown, Star, Sparkles,
-  ArrowRight, ArrowUpRight, Check, Clock, DollarSign, X
+  Plus, Trash2, Star, Sparkles, ArrowRight, ArrowUpRight,
+  Check, Clock, DollarSign
 } from 'lucide-react';
+import {
+  HeroVisual, DashboardMockup, StatsPattern, CoinGrid, BigNumber, FloatingChart
+} from '../components/visuals/DashboardVisuals';
+import {
+  TransactionFormModal, DeleteConfirmModal, TransactionDetailModal, SuccessToast
+} from '../components/modals/Modals';
 
 const CATEGORIES = {
   income: [
@@ -27,12 +33,18 @@ const CATEGORIES = {
 
 const HomePage = () => {
   const [transactions, setTransactions] = useState(() => {
-    const saved = localStorage.getItem('devStats_v3');
+    const saved = localStorage.getItem('devStats_v4');
     return saved ? JSON.parse(saved) : [];
   });
 
+  // Modales
   const [showForm, setShowForm] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [selectedTx, setSelectedTx] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
+
   const [formData, setFormData] = useState({
     type: 'income',
     description: '',
@@ -43,7 +55,7 @@ const HomePage = () => {
   });
 
   useEffect(() => {
-    localStorage.setItem('devStats_v3', JSON.stringify(transactions));
+    localStorage.setItem('devStats_v4', JSON.stringify(transactions));
   }, [transactions]);
 
   const stats = useMemo(() => {
@@ -93,9 +105,29 @@ const HomePage = () => {
       amount: '', date: new Date().toISOString().split('T')[0], status: 'completed'
     });
     setShowForm(false);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2500);
   };
 
-  const handleDelete = (id) => setTransactions(transactions.filter(t => t.id !== id));
+  const handleDelete = () => {
+    if (selectedTx) {
+      setTransactions(transactions.filter(t => t.id !== selectedTx.id));
+      setShowDelete(false);
+      setShowDetail(false);
+      setSelectedTx(null);
+    }
+  };
+
+  const handleToggleStatus = () => {
+    if (selectedTx) {
+      setTransactions(transactions.map(t =>
+        t.id === selectedTx.id
+          ? { ...t, status: t.status === 'completed' ? 'pending' : 'completed' }
+          : t
+      ));
+      setSelectedTx({ ...selectedTx, status: selectedTx.status === 'completed' ? 'pending' : 'completed' });
+    }
+  };
 
   const getCategoryInfo = (category, type) => {
     return CATEGORIES[type]?.find(c => c.value === category) || { label: category, icon: '📌', desc: '' };
@@ -105,21 +137,39 @@ const HomePage = () => {
     setFormData({ ...formData, type, category: CATEGORIES[type][0].value });
   };
 
+  const openDetail = (tx) => {
+    setSelectedTx(tx);
+    setShowDetail(true);
+  };
+
+  const openDelete = (tx) => {
+    setSelectedTx(tx);
+    setShowDelete(true);
+  };
+
   return (
     <div className="w-full bg-dark min-h-screen">
       {/* ════════════════════════════════════════════════════════
-          HERO SECTION - FULL WIDTH 100vh
+          HERO SECTION - Visual Generado (sin foto)
           ════════════════════════════════════════════════════════ */}
       <section id="dashboard" className="relative w-full min-h-screen flex items-center overflow-hidden pt-24">
-        {/* Background image full */}
+        {/* Background pattern */}
         <div className="absolute inset-0 z-0">
-          <img
-            src="/3.webp"
-            alt="Hero"
-            className="w-full h-full object-cover"
+          <div
+            className="absolute inset-0 opacity-30"
+            style={{
+              backgroundImage: `radial-gradient(circle at 20% 50%, rgba(181,255,0,0.15) 0%, transparent 50%),
+                                radial-gradient(circle at 80% 20%, rgba(181,255,0,0.1) 0%, transparent 40%)`
+            }}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-dark via-dark/90 to-dark/40" />
-          <div className="absolute inset-0 bg-gradient-to-t from-dark via-transparent to-transparent" />
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`,
+              backgroundSize: '50px 50px'
+            }}
+          />
         </div>
 
         {/* Floating sparkles */}
@@ -138,69 +188,80 @@ const HomePage = () => {
               <Star key={i} className="text-brand" size={20} fill="currentColor" />
             ))}
           </div>
-          <p className="text-6xl md:text-8xl font-teko font-black text-white text-right leading-none">10 Years</p>
-          <p className="text-sm text-brand font-oswald uppercase tracking-widest text-right mt-2">Experience</p>
+          <p className="text-6xl md:text-8xl font-teko font-black text-white text-right leading-none">10K+</p>
+          <p className="text-sm text-brand font-oswald uppercase tracking-widest text-right mt-2">Movimientos</p>
         </div>
 
         {/* Content */}
         <div className="relative z-10 w-full px-6 md:px-16 lg:px-24 py-12 md:py-20">
-          <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-6xl"
-          >
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="inline-block bg-brand text-dark px-5 py-2 rounded-full text-sm font-bold uppercase tracking-widest mb-8"
-            >
-              ✦ Dashboard Financiero
-            </motion.span>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="text-[3rem] sm:text-[5rem] md:text-[7rem] lg:text-[10rem] xl:text-[12rem] font-teko font-black uppercase text-white leading-[0.85] mb-8"
-            >
-              Empowering<br />
-              Your <span className="italic text-brand">Code</span><br />
-              Through <span className="bg-brand text-dark px-4">Data</span>
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="text-xl md:text-2xl lg:text-3xl text-white/80 max-w-3xl mb-12 leading-relaxed"
-            >
-              Del código al cliente, gestionamos cada peso. Analiza ingresos, gastos y proyectos en tiempo real.
-            </motion.p>
-
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-              className="flex flex-wrap gap-4"
+              initial={{ opacity: 0, x: -40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
             >
-              <button
-                onClick={() => setShowForm(true)}
-                className="px-10 py-5 bg-brand text-dark rounded-full font-bold text-lg md:text-xl hover:bg-brand-light hover:scale-105 transition-all flex items-center gap-3 shadow-2xl"
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="inline-block bg-brand text-dark px-5 py-2 rounded-full text-sm font-bold uppercase tracking-widest mb-8"
               >
-                <Plus size={24} />
-                Nuevo Movimiento
-              </button>
-              <button
-                onClick={() => document.getElementById('stats').scrollIntoView({ behavior: 'smooth' })}
-                className="px-10 py-5 bg-white/10 backdrop-blur-md border-2 border-white/30 text-white rounded-full font-bold text-lg md:text-xl hover:bg-white/20 transition-all flex items-center gap-3"
+                ✦ Dashboard Financiero
+              </motion.span>
+
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-[3rem] sm:text-[5rem] md:text-[7rem] lg:text-[9rem] font-teko font-black uppercase text-white leading-[0.85] mb-8"
               >
-                Ver Análisis
-                <ArrowRight size={24} />
-              </button>
+                Empowering<br />
+                Your <span className="italic text-brand">Code</span><br />
+                Through <span className="bg-brand text-dark px-4">Data</span>
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="text-xl md:text-2xl text-white/80 max-w-2xl mb-12 leading-relaxed"
+              >
+                Del código al cliente, gestionamos cada peso. Analiza ingresos, gastos y proyectos en tiempo real.
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+                className="flex flex-wrap gap-4"
+              >
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="px-10 py-5 bg-brand text-dark rounded-full font-bold text-lg md:text-xl hover:bg-brand-light hover:scale-105 transition-all flex items-center gap-3 shadow-2xl shadow-brand/30"
+                >
+                  <Plus size={24} />
+                  Nuevo Movimiento
+                </button>
+                <button
+                  onClick={() => document.getElementById('stats').scrollIntoView({ behavior: 'smooth' })}
+                  className="px-10 py-5 bg-white/10 backdrop-blur-md border-2 border-white/30 text-white rounded-full font-bold text-lg md:text-xl hover:bg-white/20 transition-all flex items-center gap-3"
+                >
+                  Ver Análisis
+                  <ArrowRight size={24} />
+                </button>
+              </motion.div>
             </motion.div>
-          </motion.div>
+
+            {/* Visual generado (phone mockup + cards) */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="hidden lg:block h-[600px]"
+            >
+              <HeroVisual />
+            </motion.div>
+          </div>
         </div>
 
         {/* Scroll indicator */}
@@ -216,10 +277,15 @@ const HomePage = () => {
       </section>
 
       {/* ════════════════════════════════════════════════════════
-          STATS SECTION - FULL WIDTH GIGANTE
+          STATS SECTION - Verde lima full-width
           ════════════════════════════════════════════════════════ */}
-      <section id="stats" className="w-full bg-brand py-20 md:py-32 overflow-hidden">
-        <div className="px-6 md:px-16 lg:px-24">
+      <section id="stats" className="w-full bg-brand py-20 md:py-32 overflow-hidden relative">
+        {/* Decorative */}
+        <div className="absolute top-0 left-0 text-[20rem] font-teko font-black text-dark/5 leading-none">
+          $
+        </div>
+
+        <div className="px-6 md:px-16 lg:px-24 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -253,7 +319,7 @@ const HomePage = () => {
       </section>
 
       {/* ════════════════════════════════════════════════════════
-          TURNING CODE INTO PROFIT - FULL WIDTH
+          TURNING CODE INTO PROFIT - con DashboardMockup
           ════════════════════════════════════════════════════════ */}
       <section className="w-full py-20 md:py-32 px-6 md:px-16 lg:px-24">
         <motion.div
@@ -274,35 +340,32 @@ const HomePage = () => {
           </p>
         </motion.div>
 
-        {/* 2 Cards Gigantes */}
+        {/* 2 Cards Gigantes - Dashboard Mockup + Stats */}
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12">
-          {/* Card 1 - Imagen grande */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="relative h-[500px] md:h-[700px] rounded-[40px] overflow-hidden group"
+            className="h-[500px] md:h-[700px]"
           >
-            <img src="/3.webp" alt="Workspace" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" />
-            <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/30 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
-              <span className="inline-block px-5 py-2 bg-brand text-dark font-bold text-sm uppercase rounded-full mb-4">
-                Tu Estudio Digital
-              </span>
-              <h3 className="text-4xl md:text-6xl font-teko font-black text-white uppercase leading-tight">
-                Donde la magia<br />sucede
-              </h3>
-            </div>
+            <DashboardMockup
+              amount={stats.totalIncome || 12450}
+              growth={stats.margin || 23.4}
+            />
           </motion.div>
 
-          {/* Card 2 - Stats */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             className="h-[500px] md:h-[700px] rounded-[40px] bg-surface border border-white/10 p-8 md:p-12 flex flex-col justify-between relative overflow-hidden"
           >
-            <div>
+            {/* Big $ background */}
+            <div className="absolute -bottom-20 -right-10 text-[24rem] font-teko font-black text-brand/5 leading-none">
+              $
+            </div>
+
+            <div className="relative z-10">
               <DollarSign className="text-brand mb-8" size={64} />
               <p className="text-sm md:text-base font-oswald uppercase tracking-widest text-muted mb-4">
                 Promedio por Proyecto
@@ -313,9 +376,9 @@ const HomePage = () => {
               <p className="text-2xl md:text-3xl text-brand font-teko mt-2">por venta</p>
             </div>
 
-            <div>
+            <div className="relative z-10">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-base md:text-lg text-muted font-oswald uppercase tracking-wider">Pendiente de cobro</span>
+                <span className="text-base md:text-lg text-muted font-oswald uppercase tracking-wider">Pendiente</span>
                 <span className="text-2xl md:text-3xl text-brand font-teko font-black">
                   ${stats.pendingAmount.toLocaleString('es-AR')}
                 </span>
@@ -335,7 +398,7 @@ const HomePage = () => {
       </section>
 
       {/* ════════════════════════════════════════════════════════
-          OUR SERVICES - FULL WIDTH GIGANTE
+          OUR SERVICES / CATEGORÍAS
           ════════════════════════════════════════════════════════ */}
       <section id="categories" className="w-full bg-surface py-20 md:py-32 px-6 md:px-16 lg:px-24">
         <motion.div
@@ -355,8 +418,14 @@ const HomePage = () => {
           </p>
         </motion.div>
 
-        {/* Lista grande de categorías */}
-        <div className="space-y-6 md:space-y-8">
+        {/* Servicios Grid */}
+        <div className="grid lg:grid-cols-2 gap-6 md:gap-8 mb-8">
+          <BigNumber number="01" label="Track" description="Registra cada movimiento de tu negocio" />
+          <BigNumber number="02" label="Analyze" description="Descubre patrones y oportunidades" />
+        </div>
+
+        {/* Lista de categorías */}
+        <div className="space-y-4 md:space-y-6">
           {CATEGORIES.income.map((cat, idx) => {
             const catStats = stats.categoryStats[cat.value];
             return (
@@ -415,7 +484,7 @@ const HomePage = () => {
       </section>
 
       {/* ════════════════════════════════════════════════════════
-          MARQUEE BANNER - GIGANTE
+          MARQUEE
           ════════════════════════════════════════════════════════ */}
       <section className="w-full py-16 md:py-24 overflow-hidden border-y border-white/10">
         <div className="flex whitespace-nowrap">
@@ -437,7 +506,47 @@ const HomePage = () => {
       </section>
 
       {/* ════════════════════════════════════════════════════════
-          TRANSACCIONES - FULL WIDTH
+          ANÁLISIS - CoinGrid + StatsPattern
+          ════════════════════════════════════════════════════════ */}
+      <section className="w-full py-20 md:py-32 px-6 md:px-16 lg:px-24">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-16 md:mb-24"
+        >
+          <p className="inline-block bg-brand text-dark px-5 py-2 rounded-full text-sm font-bold uppercase tracking-widest mb-6">
+            ✦ Portfolio Diversificado
+          </p>
+          <h2 className="text-6xl sm:text-7xl md:text-8xl lg:text-[10rem] font-teko font-black uppercase text-white leading-[0.85] mb-8">
+            Análisis <span className="text-brand italic">Multi</span><br />
+            Source
+          </h2>
+        </motion.div>
+
+        <div className="grid lg:grid-cols-2 gap-8 md:gap-12">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="h-[500px] md:h-[600px]"
+          >
+            <CoinGrid />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="h-[500px] md:h-[600px]"
+          >
+            <StatsPattern />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════
+          TRANSACCIONES - Lista funcional
           ════════════════════════════════════════════════════════ */}
       <section id="transactions" className="w-full py-20 md:py-32 px-6 md:px-16 lg:px-24">
         <motion.div
@@ -457,14 +566,14 @@ const HomePage = () => {
 
           <button
             onClick={() => setShowForm(true)}
-            className="px-10 py-5 bg-brand text-dark rounded-full font-bold text-lg md:text-xl hover:bg-brand-light hover:scale-105 transition-all flex items-center gap-3 self-start lg:self-auto"
+            className="px-10 py-5 bg-brand text-dark rounded-full font-bold text-lg md:text-xl hover:bg-brand-light hover:scale-105 transition-all flex items-center gap-3 self-start lg:self-auto shadow-2xl shadow-brand/30"
           >
             <Plus size={24} />
             Agregar Movimiento
           </button>
         </motion.div>
 
-        {/* Tabs grandes */}
+        {/* Tabs */}
         <div className="flex gap-3 md:gap-4 mb-10 overflow-x-auto pb-2">
           {[
             { id: 'all', label: 'Todas', count: transactions.length },
@@ -490,7 +599,7 @@ const HomePage = () => {
           ))}
         </div>
 
-        {/* Lista de transacciones grandes */}
+        {/* Lista */}
         {filteredTransactions.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
@@ -509,72 +618,75 @@ const HomePage = () => {
           </motion.div>
         ) : (
           <div className="space-y-4 md:space-y-6">
-            <AnimatePresence>
-              {filteredTransactions.map((t, idx) => {
-                const info = getCategoryInfo(t.category, t.type);
-                const isIncome = t.type === 'income';
-                return (
-                  <motion.div
-                    key={t.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ delay: idx * 0.03 }}
-                    className="bg-surface border border-white/10 rounded-[30px] p-6 md:p-8 hover:border-brand/50 transition-all group"
-                  >
-                    <div className="flex items-center gap-6">
-                      <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center text-4xl md:text-5xl shrink-0 ${
-                        isIncome ? 'bg-brand/20' : 'bg-orange-500/20'
-                      }`}>
-                        {info.icon}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white font-bold truncate text-xl md:text-2xl mb-2">{t.description}</p>
-                        <div className="flex flex-wrap items-center gap-3 text-sm md:text-base">
-                          <span className="text-muted">{info.label}</span>
-                          <span className="text-muted-2 hidden sm:inline">•</span>
-                          <span className="text-muted hidden sm:inline">
-                            {new Date(t.date).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}
-                          </span>
-                          <span className={`px-3 py-1 rounded-full font-bold uppercase text-xs flex items-center gap-1 ${
-                            t.status === 'completed'
-                              ? 'bg-brand/20 text-brand'
-                              : 'bg-orange-500/20 text-orange-400'
-                          }`}>
-                            {t.status === 'completed' ? <Check size={12} /> : <Clock size={12} />}
-                            {t.status === 'completed' ? 'Cobrado' : 'Pendiente'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="text-right shrink-0">
-                        <p className={`text-3xl md:text-5xl font-teko font-black ${
-                          isIncome ? 'text-brand' : 'text-orange-400'
-                        }`}>
-                          {isIncome ? '+' : '-'}${t.amount.toLocaleString('es-AR')}
-                        </p>
-                      </div>
-
-                      <button
-                        onClick={() => handleDelete(t.id)}
-                        className="p-3 text-muted-2 hover:text-red-400 hover:bg-red-500/10 rounded-2xl transition-all shrink-0"
-                      >
-                        <Trash2 size={20} />
-                      </button>
+            {filteredTransactions.map((t, idx) => {
+              const info = getCategoryInfo(t.category, t.type);
+              const isIncome = t.type === 'income';
+              return (
+                <motion.div
+                  key={t.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.03 }}
+                  onClick={() => openDetail(t)}
+                  className="bg-surface border border-white/10 rounded-[30px] p-6 md:p-8 hover:border-brand/50 transition-all group cursor-pointer"
+                >
+                  <div className="flex items-center gap-6">
+                    <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center text-4xl md:text-5xl shrink-0 ${
+                      isIncome ? 'bg-brand/20' : 'bg-orange-500/20'
+                    }`}>
+                      {info.icon}
                     </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-bold truncate text-xl md:text-2xl mb-2">{t.description}</p>
+                      <div className="flex flex-wrap items-center gap-3 text-sm md:text-base">
+                        <span className="text-muted">{info.label}</span>
+                        <span className="text-muted-2 hidden sm:inline">•</span>
+                        <span className="text-muted hidden sm:inline">
+                          {new Date(t.date).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </span>
+                        <span className={`px-3 py-1 rounded-full font-bold uppercase text-xs flex items-center gap-1 ${
+                          t.status === 'completed'
+                            ? 'bg-brand/20 text-brand'
+                            : 'bg-orange-500/20 text-orange-400'
+                        }`}>
+                          {t.status === 'completed' ? <Check size={12} /> : <Clock size={12} />}
+                          {t.status === 'completed' ? 'Cobrado' : 'Pendiente'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <p className={`text-3xl md:text-5xl font-teko font-black ${
+                        isIncome ? 'text-brand' : 'text-orange-400'
+                      }`}>
+                        {isIncome ? '+' : '-'}${t.amount.toLocaleString('es-AR')}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={(e) => { e.stopPropagation(); openDelete(t); }}
+                      className="p-3 text-muted-2 hover:text-red-400 hover:bg-red-500/10 rounded-2xl transition-all shrink-0"
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </section>
 
       {/* ════════════════════════════════════════════════════════
-          CTA FINAL - FULL WIDTH VERDE GIGANTE
+          CTA FINAL
           ════════════════════════════════════════════════════════ */}
       <section className="w-full bg-brand py-20 md:py-32 px-6 md:px-16 lg:px-24 relative overflow-hidden">
+        {/* Big decoration */}
+        <div className="absolute -top-10 -right-10 text-[30rem] font-teko font-black text-dark/10 leading-none">
+          ✦
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -596,195 +708,81 @@ const HomePage = () => {
               </p>
               <button
                 onClick={() => setShowForm(true)}
-                className="px-12 py-6 bg-dark text-brand rounded-full font-bold text-xl md:text-2xl hover:bg-surface hover:scale-105 transition-all flex items-center gap-4"
+                className="px-12 py-6 bg-dark text-brand rounded-full font-bold text-xl md:text-2xl hover:bg-surface hover:scale-105 transition-all flex items-center gap-4 shadow-2xl"
               >
                 Comenzar Ahora
                 <ArrowRight size={28} />
               </button>
             </div>
 
-            <div className="relative h-[400px] md:h-[600px] rounded-[40px] overflow-hidden">
-              <img src="/3.webp" alt="Start" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-dark/20 to-transparent" />
+            {/* Visual generado en lugar de foto */}
+            <div className="h-[400px] md:h-[600px] grid grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <FloatingChart title="Total" value={`$${(stats.totalIncome / 1000).toFixed(1)}k`} growth={`${stats.margin}%`} delay={0.2} />
+                <FloatingChart title="Proyectos" value={stats.projects.toString()} growth="+8%" delay={0.4} />
+              </div>
+              <div className="bg-dark rounded-[30px] p-6 flex flex-col justify-between">
+                <div>
+                  <p className="text-xs text-brand font-bold uppercase tracking-widest mb-2">Trending</p>
+                  <p className="text-4xl md:text-5xl font-teko font-black text-white">+45%</p>
+                </div>
+                <svg viewBox="0 0 100 60" className="w-full h-20">
+                  <motion.path
+                    initial={{ pathLength: 0 }}
+                    whileInView={{ pathLength: 1 }}
+                    transition={{ duration: 2 }}
+                    d="M 0,50 Q 20,40 35,30 T 65,15 T 100,5"
+                    fill="none"
+                    stroke="#B5FF00"
+                    strokeWidth="3"
+                  />
+                </svg>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-brand rounded-xl p-2 text-center">
+                    <p className="text-xs text-dark/70 font-bold">Hoy</p>
+                    <p className="text-lg font-teko font-black text-dark">$1.2k</p>
+                  </div>
+                  <div className="bg-white/10 rounded-xl p-2 text-center">
+                    <p className="text-xs text-white/70 font-bold">Mes</p>
+                    <p className="text-lg font-teko font-black text-white">$12k</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>
       </section>
 
       {/* ════════════════════════════════════════════════════════
-          MODAL FORMULARIO
+          MODALES
           ════════════════════════════════════════════════════════ */}
-      <AnimatePresence>
-        {showForm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowForm(false)}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-[40px] max-w-3xl w-full p-8 md:p-12 my-8 max-h-[90vh] overflow-y-auto"
-            >
-              <div className="flex justify-between items-start mb-10">
-                <div>
-                  <Sparkles className="text-brand mb-3" size={48} fill="currentColor" />
-                  <h2 className="text-5xl md:text-7xl font-teko font-black uppercase text-dark leading-none">
-                    Nuevo<br />
-                    <span className="italic">Movimiento</span>
-                  </h2>
-                </div>
-                <button
-                  onClick={() => setShowForm(false)}
-                  className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                >
-                  <X className="text-dark" size={24} />
-                </button>
-              </div>
+      <TransactionFormModal
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        onSubmit={handleSubmit}
+        formData={formData}
+        setFormData={setFormData}
+        categories={CATEGORIES}
+        handleTypeChange={handleTypeChange}
+      />
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    type="button"
-                    onClick={() => handleTypeChange('income')}
-                    className={`p-6 rounded-3xl border-2 transition-all flex items-center justify-center gap-3 font-bold text-lg ${
-                      formData.type === 'income'
-                        ? 'bg-brand border-brand text-dark'
-                        : 'bg-white border-gray-200 text-muted-2 hover:border-dark'
-                    }`}
-                  >
-                    <TrendingUp size={24} />
-                    Ingreso
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleTypeChange('expense')}
-                    className={`p-6 rounded-3xl border-2 transition-all flex items-center justify-center gap-3 font-bold text-lg ${
-                      formData.type === 'expense'
-                        ? 'bg-dark border-dark text-white'
-                        : 'bg-white border-gray-200 text-muted-2 hover:border-dark'
-                    }`}
-                  >
-                    <TrendingDown size={24} />
-                    Gasto
-                  </button>
-                </div>
+      <DeleteConfirmModal
+        isOpen={showDelete}
+        onClose={() => setShowDelete(false)}
+        onConfirm={handleDelete}
+        transaction={selectedTx}
+      />
 
-                <div>
-                  <label className="block text-sm font-bold uppercase tracking-widest text-muted-2 mb-3">
-                    Descripción
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder={formData.type === 'income' ? 'Ej: Landing Page Cliente X' : 'Ej: Hosting Anual'}
-                    className="w-full bg-gray-50 border-2 border-gray-200 px-6 py-4 rounded-2xl text-dark text-lg placeholder:text-gray-400 focus:outline-none focus:border-brand transition-all"
-                    required
-                    autoFocus
-                  />
-                </div>
+      <TransactionDetailModal
+        isOpen={showDetail}
+        onClose={() => setShowDetail(false)}
+        transaction={selectedTx}
+        categoryInfo={selectedTx ? getCategoryInfo(selectedTx.category, selectedTx.type) : null}
+        onDelete={() => { setShowDelete(true); }}
+        onToggleStatus={handleToggleStatus}
+      />
 
-                <div>
-                  <label className="block text-sm font-bold uppercase tracking-widest text-muted-2 mb-3">
-                    Categoría
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full bg-gray-50 border-2 border-gray-200 px-6 py-4 rounded-2xl text-dark text-lg focus:outline-none focus:border-brand transition-all"
-                  >
-                    {CATEGORIES[formData.type].map(c => (
-                      <option key={c.value} value={c.value}>
-                        {c.icon} {c.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold uppercase tracking-widest text-muted-2 mb-3">
-                      Monto ($)
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.amount}
-                      onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                      placeholder="0"
-                      step="0.01"
-                      min="0"
-                      className="w-full bg-gray-50 border-2 border-gray-200 px-6 py-4 rounded-2xl text-dark text-lg placeholder:text-gray-400 focus:outline-none focus:border-brand transition-all"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold uppercase tracking-widest text-muted-2 mb-3">
-                      Fecha
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.date}
-                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                      className="w-full bg-gray-50 border-2 border-gray-200 px-6 py-4 rounded-2xl text-dark text-lg focus:outline-none focus:border-brand transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold uppercase tracking-widest text-muted-2 mb-3">
-                    Estado
-                  </label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, status: 'completed' })}
-                      className={`p-4 rounded-2xl border-2 transition-all font-bold text-base flex items-center justify-center gap-2 ${
-                        formData.status === 'completed'
-                          ? 'bg-brand border-brand text-dark'
-                          : 'bg-white border-gray-200 text-muted-2'
-                      }`}
-                    >
-                      <Check size={18} /> Confirmado
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, status: 'pending' })}
-                      className={`p-4 rounded-2xl border-2 transition-all font-bold text-base flex items-center justify-center gap-2 ${
-                        formData.status === 'pending'
-                          ? 'bg-orange-100 border-orange-400 text-orange-600'
-                          : 'bg-white border-gray-200 text-muted-2'
-                      }`}
-                    >
-                      <Clock size={18} /> Pendiente
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex gap-4 pt-4">
-                  <button
-                    type="submit"
-                    className="flex-1 px-8 py-5 bg-dark text-brand rounded-full font-bold text-lg hover:bg-surface transition-all"
-                  >
-                    Guardar Movimiento
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowForm(false)}
-                    className="px-8 py-5 bg-gray-100 text-dark rounded-full font-bold text-lg hover:bg-gray-200 transition-all"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <SuccessToast isOpen={showToast} message="✓ Movimiento guardado" />
     </div>
   );
 };
